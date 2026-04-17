@@ -178,3 +178,76 @@ Good learning objectives are specific and measurable:
 - Games run directly in the browser — just open the downloaded HTML file
 - API keys are stored in **localStorage only** and never sent to any server except your chosen API provider
 - The app uses separate localStorage keys from the original Game Creator, so both can coexist without conflicts
+
+---
+
+## 🚀 Deployment Guide
+
+### Prerequisites
+- Node.js 18+ installed
+- Git account
+- Stripe account (for payments)
+- OAuth apps for Google/Facebook/GitHub (optional)
+
+### Environment Setup
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Copy `.env.example` to `.env` and fill in your API keys:
+   ```
+   JWT_SECRET=your_jwt_secret_here
+   STRIPE_SECRET_KEY=sk_test_...
+   STRIPE_PUBLISHABLE_KEY=pk_test_...
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   FACEBOOK_APP_ID=...
+   FACEBOOK_APP_SECRET=...
+   GITHUB_CLIENT_ID=...
+   GITHUB_CLIENT_SECRET=...
+   GEMINI_API_KEY=...
+   ```
+
+### Hosting Options (Under £10/month)
+
+#### Railway (Recommended - £5/month)
+1. Sign up at [railway.app](https://railway.app)
+2. Connect your GitHub repo
+3. Deploy automatically
+4. Add environment variables in Railway dashboard
+5. Domain included, SSL automatic
+
+#### Render (Free tier available, £7/month for paid)
+1. Sign up at [render.com](https://render.com)
+2. Connect GitHub repo
+3. Choose "Web Service"
+4. Set build command: `npm install`
+5. Set start command: `npm start`
+6. Add environment variables
+
+#### Heroku (Deprecated but still works - £7/month)
+1. Sign up at [heroku.com](https://heroku.com)
+2. Install Heroku CLI
+3. `heroku create your-app-name`
+4. `git push heroku main`
+5. Set environment variables: `heroku config:set KEY=value`
+
+### Stripe Setup
+1. Create account at [stripe.com](https://stripe.com)
+2. Enable test mode
+3. Get API keys from dashboard
+4. Set up webhooks for payment confirmations
+5. Configure products: £10 for 10 tokens, £1 for 5 edits, £5/month subscription
+
+### OAuth Setup (Optional)
+- **Google**: Console.developers.google.com → Create project → OAuth 2.0 credentials
+- **Facebook**: developers.facebook.com → Create app → Facebook Login
+- **GitHub**: github.com/settings/developers → New OAuth App
+
+### Database
+- SQLite database created automatically on first run
+- No additional setup required
+- Data persists in `database.sqlite` file
+
+### Testing
+- Run locally: `npm start`
+- Test payments in Stripe test mode
+- Use test card numbers from Stripe docs

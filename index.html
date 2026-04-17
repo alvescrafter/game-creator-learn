@@ -20,6 +20,9 @@
       </button>
     </div>
     <div class="header-right">
+      <span id="account-status" class="account-status">Guest</span>
+      <button id="btn-account" class="btn btn-secondary">Login</button>
+      <button id="btn-subscribe" class="btn btn-secondary">Subscribe</button>
       <button id="btn-history" class="icon-btn" title="History (Ctrl+H)">📜</button>
       <button id="btn-templates" class="icon-btn" title="Templates (Ctrl+T)">📋</button>
       <button id="btn-settings" class="icon-btn" title="API Settings (Ctrl+,)">⚙️</button>
@@ -480,6 +483,60 @@
     </div>
   </dialog>
 
+  <!-- Account / Login Modal -->
+  <dialog id="modal-account" class="modal">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h2>🔐 Account</h2>
+        <button class="modal-close" data-close="modal-account">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="auth-summary">
+          <p id="account-modal-status">Not signed in. Please login or register to access tokens and premium features.</p>
+        </div>
+        <div class="auth-actions">
+          <button id="btn-google-login" class="btn btn-secondary">Login with Google</button>
+          <button id="btn-facebook-login" class="btn btn-secondary">Login with Facebook</button>
+          <button id="btn-github-login" class="btn btn-secondary">Login with GitHub</button>
+        </div>
+        <div class="payment-actions">
+          <button id="btn-buy-tokens" class="btn btn-primary">Buy 10 Tokens (£10)</button>
+          <button id="btn-buy-edits" class="btn btn-secondary">Buy 5 Edits (£1)</button>
+          <button id="btn-subscribe-modal" class="btn btn-glow">Subscribe £5/month</button>
+          <button id="btn-download-unlocked" class="btn btn-secondary">Download Unlocked Version</button>
+        </div>
+        <div class="auth-forms-grid">
+          <div class="auth-form-card">
+            <h3>Sign in</h3>
+            <form id="login-form">
+              <label class="field-label">Email</label>
+              <input id="login-email" class="field-input" type="email" required placeholder="you@example.com">
+              <label class="field-label">Password</label>
+              <input id="login-password" class="field-input" type="password" required placeholder="••••••••">
+              <button id="btn-login-submit" class="btn btn-primary" type="submit">Sign In</button>
+            </form>
+          </div>
+          <div class="auth-form-card">
+            <h3>Register</h3>
+            <form id="register-form">
+              <label class="field-label">Name</label>
+              <input id="register-name" class="field-input" type="text" required placeholder="Your name">
+              <label class="field-label">Email</label>
+              <input id="register-email" class="field-input" type="email" required placeholder="you@example.com">
+              <label class="field-label">Password</label>
+              <input id="register-password" class="field-input" type="password" required placeholder="••••••••">
+              <button id="btn-register-submit" class="btn btn-secondary" type="submit">Create Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer auth-footer">
+        <button id="btn-signout" class="btn btn-danger" type="button">Sign Out</button>
+        <button class="btn btn-secondary" data-close="modal-account">Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Templates Modal -->
   <dialog id="modal-templates" class="modal">
     <div class="modal-content modal-wide">
@@ -511,6 +568,16 @@
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Game Creator Learn. All rights reserved.</p>
+      <nav>
+        <a href="terms.html">Terms of Service</a> |
+        <a href="privacy.html">Privacy Policy</a>
+      </nav>
+    </div>
+  </footer>
 
   <script src="app.js"></script>
 </body>

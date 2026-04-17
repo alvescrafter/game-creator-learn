@@ -16,6 +16,263 @@
 
   const MAX_HISTORY = 50;
 
+  let authToken = localStorage.getItem('token');
+  let currentUser = null;
+
+  const AUTH_ENDPOINTS = {
+    profile: '/auth/profile',
+    login: '/auth/login',
+    register: '/auth/register',
+    google: '/auth/google',
+    facebook: '/auth/facebook',
+    github: '/auth/github',
+    subscription: '/payments/create-subscription',
+  };
+
+  function setAuthToken(token) {
+    authToken = token;
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+    updateAuthUI();
+  }
+
+  function clearAuthToken() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('token');
+    updateAuthUI();
+  }
+
+  function updateAuthUI() {
+    const statusEl = document.getElementById('account-status');
+    const accountModalStatus = document.getElementById('account-modal-status');
+    const accountButton = document.getElementById('btn-account');
+    const signoutButton = document.getElementById('btn-signout');
+
+    if (currentUser) {
+      const subscriptionText = currentUser.subscription_active ? 'Subscribed' : 'No subscription';
+      const tokenText = typeof currentUser.tokens === 'number' ? `${currentUser.tokens} tokens` : '0 tokens';
+      const nameText = currentUser.name || currentUser.email || 'User';
+      statusEl.textContent = `${nameText} · ${tokenText} · ${subscriptionText}`;
+      accountModalStatus.textContent = `Signed in as ${nameText}. You can buy tokens or subscribe for premium access.`;
+      accountButton.textContent = 'Account';
+      signoutButton.style.display = 'inline-flex';
+    } else {
+      statusEl.textContent = 'Guest · Please sign in';
+      accountModalStatus.textContent = 'Not signed in. Please login or register to access tokens and premium features.';
+      accountButton.textContent = 'Login';
+      signoutButton.style.display = 'none';
+    }
+
+    // Feature gating
+    const generateBtn = document.getElementById('btn-generate');
+    const refineBtn = document.getElementById('btn-refine');
+    const promptPreview = document.getElementById('prompt-preview');
+    const lockBtn = document.getElementById('btn-lock-prompt');
+
+    if (currentUser && currentUser.subscription_active) {
+      // Subscribers can edit prompts and use all features
+      generateBtn.disabled = false;
+      refineBtn.disabled = false;
+      if (lockBtn) lockBtn.style.display = 'inline-flex';
+      if (promptPreview) promptPreview.style.display = 'block';
+    } else if (currentUser && currentUser.tokens > 0) {
+      // Token users can generate and refine (up to token limit)
+      generateBtn.disabled = false;
+      refineBtn.disabled = false;
+      if (lockBtn) lockBtn.style.display = 'none';
+      if (promptPreview) promptPreview.style.display = 'none';
+    } else {
+      // Guests or out of tokens: limited access
+      generateBtn.disabled = true;
+      refineBtn.disabled = true;
+      if (lockBtn) lockBtn.style.display = 'none';
+      if (promptPreview) promptPreview.style.display = 'none';
+    }
+  }
+
+  function getQueryToken() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('token');
+  }
+
+  function clearQueryToken() {
+    if (window.history.replaceState) {
+      const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
+
+  async function fetchJson(url, options = {}) {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (err) {
+        errorData = { error: response.statusText || 'Request failed' };
+      }
+      throw new Error(errorData.error || 'Request failed');
+    }
+    return response.json();
+  }
+
+  async function loadUserProfile() {
+    if (!authToken) {
+      currentUser = null;
+      updateAuthUI();
+      return;
+    }
+
+    try {
+      const profile = await fetchJson(AUTH_ENDPOINTS.profile, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      currentUser = profile;
+    } catch (error) {
+      console.warn('Failed to load profile:', error.message);
+      clearAuthToken();
+    }
+    updateAuthUI();
+  }
+
+  async function handleSignOut() {
+    clearAuthToken();
+    showToast('Signed out successfully', 'info');
+    closeModal('modal-account');
+  }
+
+  async function handleSubscriptionPurchase() {
+    if (!authToken) {
+      showToast('Please sign in before subscribing.', 'warning');
+      openModal('modal-account');
+      return;
+    }
+
+    try {
+      const result = await fetchJson(AUTH_ENDPOINTS.subscription, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error('Failed to create subscription session');
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      showToast(error.message, 'error', 5000);
+    }
+  }
+
+  async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    if (!email || !password) {
+      showToast('Please enter email and password.', 'warning');
+      return;
+    }
+
+    try {
+      const data = await fetchJson(AUTH_ENDPOINTS.login, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+      setAuthToken(data.token);
+      await loadUserProfile();
+      showToast('Signed in successfully.', 'success');
+      closeModal('modal-account');
+    } catch (error) {
+      showToast(error.message, 'error', 5000);
+    }
+  }
+
+  async function handleRegisterSubmit(event) {
+    event.preventDefault();
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value.trim();
+    if (!name || !email || !password) {
+      showToast('Please complete all registration fields.', 'warning');
+      return;
+    }
+
+    try {
+      const data = await fetchJson(AUTH_ENDPOINTS.register, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
+      });
+      setAuthToken(data.token);
+      await loadUserProfile();
+      showToast('Account created and signed in successfully.', 'success');
+      closeModal('modal-account');
+    } catch (error) {
+      showToast(error.message, 'error', 5000);
+    }
+  }
+
+  async function handlePurchase(type) {
+    if (!authToken) {
+      showToast('Please sign in before purchasing tokens or edits.', 'warning');
+      openModal('modal-account');
+      return;
+    }
+
+    try {
+      const result = await fetchJson('/payments/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ type })
+      });
+
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error('Unable to create checkout session.');
+      }
+    } catch (error) {
+      showToast(error.message, 'error', 5000);
+    }
+  }
+
+  async function handleDownloadUnlocked() {
+    if (!currentUser || !currentUser.subscription_active) {
+      showToast('Subscription required to download unlocked version.', 'warning');
+      openModal('modal-account');
+      return;
+    }
+
+    // For now, just show a message. In production, this would link to a download endpoint
+    showToast('Download feature coming soon! Contact support for unlocked version.', 'info');
+  }
+
+  function initAuth() {
+    const urlToken = getQueryToken();
+    if (urlToken) {
+      setAuthToken(urlToken);
+      clearQueryToken();
+    }
+    loadUserProfile();
+  }
+
   // ── Default State ──
   const DEFAULT_STATE = {
     educationalTopic: {
@@ -615,10 +872,28 @@ CORE PRINCIPLES:
         { role: 'user', content: userPrompt },
       ];
 
-      const response = await callLLM(conversationHistory);
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authToken ? `Bearer ${authToken}` : ''
+        },
+        body: JSON.stringify({ config: state })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'API error' }));
+        throw new Error(err.error || 'Generation failed');
+      }
+
+      const data = await res.json();
+      const response = data.gameCode || '';
       conversationHistory.push({ role: 'assistant', content: response });
 
-      const code = extractCode(response);
+      let code = extractCode(response);
+      if (!code || code.trim().length === 0) {
+        code = response;
+      }
 
       if (!code || code.trim().length === 0) {
         throw new Error('The AI returned empty code. Try adjusting your settings or prompt.');
@@ -1155,6 +1430,30 @@ CORE PRINCIPLES:
       openModal('modal-settings');
     });
 
+    document.getElementById('btn-account').addEventListener('click', () => {
+      openModal('modal-account');
+    });
+
+    document.getElementById('btn-subscribe').addEventListener('click', handleSubscriptionPurchase);
+    document.getElementById('btn-buy-tokens').addEventListener('click', () => handlePurchase('tokens'));
+    document.getElementById('btn-buy-edits').addEventListener('click', () => handlePurchase('edits'));
+
+    document.getElementById('login-form').addEventListener('submit', handleLoginSubmit);
+    document.getElementById('register-form').addEventListener('submit', handleRegisterSubmit);
+    document.getElementById('btn-signout').addEventListener('click', handleSignOut);
+
+    document.getElementById('btn-google-login').addEventListener('click', () => {
+      window.location.href = AUTH_ENDPOINTS.google;
+    });
+    document.getElementById('btn-facebook-login').addEventListener('click', () => {
+      window.location.href = AUTH_ENDPOINTS.facebook;
+    });
+    document.getElementById('btn-github-login').addEventListener('click', () => {
+      window.location.href = AUTH_ENDPOINTS.github;
+    });
+    document.getElementById('btn-subscribe-modal').addEventListener('click', handleSubscriptionPurchase);
+    document.getElementById('btn-download-unlocked').addEventListener('click', handleDownloadUnlocked);
+
     // ── Save settings on close ──
     document.getElementById('modal-settings').addEventListener('close', () => {
       apiSettings.baseUrl = document.getElementById('apiBaseUrl').value.trim();
@@ -1395,6 +1694,8 @@ CORE PRINCIPLES:
   // ═══════════════════════════════════════════════
 
   function init() {
+    initAuth();
+
     // Load persisted state
     loadState();
     loadApiSettings();
