@@ -1,7 +1,7 @@
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const jwt = require('jsonwebtoken');
-const { db } = require('../database');
+const { prisma } = require('../database');
 
 const router = express.Router();
 
@@ -110,28 +110,58 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const { userId, type } = session.metadata || {};
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const { userId, type } = session.metadata || {};
 
-    if (session.mode === 'subscription') {
-      const subscriptionEnd = new Date();
-      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+      if (session.mode === 'subscription') {
+        const subscriptionEnd = new Date();
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
 
-      db.run('UPDATE users SET subscription_active = 1, subscription_end = ? WHERE id = ?',
-        [subscriptionEnd.toISOString().split('T')[0], userId]);
+        await prisma.user.update({
+          where: { id: parseInt(userId) },
+          data: {
+            subscription_active: true,
+            subscription_end: subscriptionEnd
+          }
+        });
 
-      db.run('INSERT INTO payments (user_id, stripe_payment_id, amount, currency, type, tokens_purchased) VALUES (?, ?, ?, ?, ?, ?)',
-        [userId, session.payment_intent || session.id, session.amount_total || 0, session.currency || 'gbp', 'subscription', 0]);
-    } else if (session.mode === 'payment' && type) {
-      let tokensToAdd = 0;
-      if (type === 'tokens') tokensToAdd = 10;
-      if (type === 'edits') tokensToAdd = 5;
+        await prisma.payment.create({
+          data: {
+            user_id: parseInt(userId),
+            stripe_payment_id: session.payment_intent || session.id,
+            amount: session.amount_total || 0,
+            currency: session.currency || 'gbp',
+            type: 'subscription',
+            tokens_purchased: 0
+          }
+        });
+      } else if (session.mode === 'payment' && type) {
+        let tokensToAdd = 0;
+        if (type === 'tokens') tokensToAdd = 10;
+        if (type === 'edits') tokensToAdd = 5;
 
-      db.run('UPDATE users SET tokens = tokens + ? WHERE id = ?', [tokensToAdd, userId]);
-      db.run('INSERT INTO payments (user_id, stripe_payment_id, amount, currency, type, tokens_purchased) VALUES (?, ?, ?, ?, ?, ?)',
-        [userId, session.payment_intent || session.id, session.amount_total || 0, session.currency || 'gbp', type, tokensToAdd]);
+        await prisma.user.update({
+          where: { id: parseInt(userId) },
+          data: { tokens: { increment: tokensToAdd } }
+        });
+
+        await prisma.payment.create({
+          data: {
+            user_id: parseInt(userId),
+            stripe_payment_id: session.payment_intent || session.id,
+            amount: session.amount_total || 0,
+            currency: session.currency || 'gbp',
+            type,
+            tokens_purchased: tokensToAdd
+          }
+        });
+      }
     }
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return res.status(500).send('Internal Server Error');
   }
 
   res.json({ received: true });

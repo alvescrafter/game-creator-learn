@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { db } = require('../database');
+const { prisma } = require('../database');
 
 const router = express.Router();
 
@@ -19,9 +19,12 @@ const verifyToken = (req, res, next) => {
 
 // Check if user has subscription or tokens
 const checkAccess = (action, callback) => {
-  return (req, res, next) => {
-    db.get('SELECT tokens, subscription_active FROM users WHERE id = ?', [req.userId], (err, user) => {
-      if (err) return res.status(500).json({ error: 'Server error' });
+  return async (req, res, next) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId }
+      });
+
       if (!user) return res.status(404).json({ error: 'User not found' });
 
       let cost = 0;
@@ -35,7 +38,9 @@ const checkAccess = (action, callback) => {
       } else {
         res.status(403).json({ error: 'Insufficient tokens or subscription required' });
       }
-    });
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
   };
 };
 
@@ -52,9 +57,17 @@ router.post('/generate', verifyToken, checkAccess('generate'), async (req, res) 
 
     // Deduct tokens if not subscribed
     if (!req.user.subscription_active) {
-      db.run('UPDATE users SET tokens = tokens - ? WHERE id = ?', [req.cost, req.userId]);
-      db.run('INSERT INTO usage (user_id, action, tokens_used) VALUES (?, ?, ?)',
-        [req.userId, 'generate', req.cost]);
+      await prisma.user.update({
+        where: { id: req.userId },
+        data: { tokens: { decrement: req.cost } }
+      });
+      await prisma.usage.create({
+        data: {
+          user_id: req.userId,
+          action: 'generate',
+          tokens_used: req.cost
+        }
+      });
     }
 
     res.json({ gameCode });
@@ -76,9 +89,17 @@ router.post('/edit', verifyToken, checkAccess('edit'), async (req, res) => {
 
     // Deduct tokens if not subscribed
     if (!req.user.subscription_active) {
-      db.run('UPDATE users SET tokens = tokens - ? WHERE id = ?', [req.cost, req.userId]);
-      db.run('INSERT INTO usage (user_id, action, tokens_used) VALUES (?, ?, ?)',
-        [req.userId, 'edit', req.cost]);
+      await prisma.user.update({
+        where: { id: req.userId },
+        data: { tokens: { decrement: req.cost } }
+      });
+      await prisma.usage.create({
+        data: {
+          user_id: req.userId,
+          action: 'edit',
+          tokens_used: req.cost
+        }
+      });
     }
 
     res.json({ editedCode });
@@ -89,8 +110,10 @@ router.post('/edit', verifyToken, checkAccess('edit'), async (req, res) => {
 
 // For subscribers: access to other models
 router.post('/generate-advanced', verifyToken, async (req, res) => {
-  db.get('SELECT subscription_active FROM users WHERE id = ?', [req.userId], (err, user) => {
-    if (err) return res.status(500).json({ error: 'Server error' });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId }
+    });
     if (!user || !user.subscription_active) {
       return res.status(403).json({ error: 'Subscription required' });
     }
@@ -98,7 +121,9 @@ router.post('/generate-advanced', verifyToken, async (req, res) => {
     // Implement advanced model calls here (OpenAI, Anthropic, etc.)
     // For now, placeholder
     res.json({ message: 'Advanced generation not yet implemented' });
-  });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 function buildPrompt(config) {

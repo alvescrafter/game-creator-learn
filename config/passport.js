@@ -5,7 +5,7 @@ const GitHubStrategy = require('passport-github').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { db } = require('../database');
+const { prisma } = require('../database');
 
 module.exports = (passport) => {
 
@@ -15,22 +15,20 @@ passport.use(new GoogleStrategy({
   callbackURL: '/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    // Check if user exists
-    db.get('SELECT * FROM users WHERE google_id = ?', [profile.id], (err, user) => {
-      if (err) return done(err);
-      if (user) {
-        return done(null, user);
-      } else {
-        // Create new user
-        db.run('INSERT INTO users (google_id, email, name) VALUES (?, ?, ?)',
-          [profile.id, profile.emails[0].value, profile.displayName], function(err) {
-          if (err) return done(err);
-          db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, newUser) => {
-            return done(null, newUser);
-          });
-        });
-      }
+    let user = await prisma.user.findUnique({
+      where: { google_id: profile.id }
     });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          google_id: profile.id,
+          email: profile.emails[0].value,
+          name: profile.displayName
+        }
+      });
+    }
+    return done(null, user);
   } catch (error) {
     done(error);
   }
@@ -43,20 +41,20 @@ passport.use(new FacebookStrategy({
   profileFields: ['id', 'emails', 'name']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    db.get('SELECT * FROM users WHERE facebook_id = ?', [profile.id], (err, user) => {
-      if (err) return done(err);
-      if (user) {
-        return done(null, user);
-      } else {
-        db.run('INSERT INTO users (facebook_id, email, name) VALUES (?, ?, ?)',
-          [profile.id, profile.emails[0].value, profile.displayName], function(err) {
-          if (err) return done(err);
-          db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, newUser) => {
-            return done(null, newUser);
-          });
-        });
-      }
+    let user = await prisma.user.findUnique({
+      where: { facebook_id: profile.id }
     });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          facebook_id: profile.id,
+          email: profile.emails[0].value,
+          name: profile.displayName
+        }
+      });
+    }
+    return done(null, user);
   } catch (error) {
     done(error);
   }
@@ -68,20 +66,20 @@ passport.use(new GitHubStrategy({
   callbackURL: '/auth/github/callback'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    db.get('SELECT * FROM users WHERE github_id = ?', [profile.id], (err, user) => {
-      if (err) return done(err);
-      if (user) {
-        return done(null, user);
-      } else {
-        db.run('INSERT INTO users (github_id, email, name) VALUES (?, ?, ?)',
-          [profile.id, profile.emails[0].value, profile.displayName], function(err) {
-          if (err) return done(err);
-          db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, newUser) => {
-            return done(null, newUser);
-          });
-        });
-      }
+    let user = await prisma.user.findUnique({
+      where: { github_id: profile.id }
     });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          github_id: profile.id,
+          email: profile.emails[0].value,
+          name: profile.displayName
+        }
+      });
+    }
+    return done(null, user);
   } catch (error) {
     done(error);
   }
@@ -91,17 +89,21 @@ passport.use(new LocalStrategy({
   usernameField: 'email'
 }, async (email, password, done) => {
   try {
-    db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return done(null, false, { message: 'Incorrect email.' });
+    }
+
+    bcrypt.compare(password, user.password, (err, isMatch) => {
       if (err) return done(err);
-      if (!user) return done(null, false, { message: 'Incorrect email.' });
-      bcrypt.compare(password, user.password, (err, isMatch) => {
-        if (err) return done(err);
-        if (isMatch) {
-          return done(null, user);
-        } else {
-          return done(null, false, { message: 'Incorrect password.' });
-        }
-      });
+      if (isMatch) {
+        return done(null, user);
+      } else {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
     });
   } catch (error) {
     done(error);
@@ -112,9 +114,14 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-  db.get('SELECT * FROM users WHERE id = ?', [id], (err, user) => {
-    done(err, user);
-  });
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
 });
 };
