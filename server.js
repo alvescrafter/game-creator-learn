@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const passport = require('passport');
 const path = require('path');
-const { db } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +31,11 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only start server if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

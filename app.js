@@ -260,8 +260,49 @@
       return;
     }
 
-    // For now, just show a message. In production, this would link to a download endpoint
-    showToast('Download feature coming soon! Contact support for unlocked version.', 'info');
+    if (!lastGeneratedCode) {
+      showToast('No game to download. Generate one first!', 'warning');
+      return;
+    }
+
+    try {
+      const subject = state.educationalTopic.subject || 'edu';
+      const topic = state.educationalTopic.topic || 'game';
+      const filename = `${subject.toLowerCase()}-${topic.toLowerCase().replace(/\s+/g, '-')}-unlocked`;
+
+      const res = await fetch('/api/download-unlocked', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          gameCode: lastGeneratedCode,
+          filename,
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Download failed' }));
+        throw new Error(err.error || 'Download failed');
+      }
+
+      // Download the file
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('Unlocked game downloaded! 💾', 'success');
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast(error.message, 'error', 5000);
+    }
   }
 
   function initAuth() {
@@ -872,13 +913,21 @@ CORE PRINCIPLES:
         { role: 'user', content: userPrompt },
       ];
 
+      // Send full prompt data to server — server will use it or build its own
+      const { systemPrompt, userPrompt } = getPromptForGeneration();
+
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': authToken ? `Bearer ${authToken}` : ''
         },
-        body: JSON.stringify({ config: state })
+        body: JSON.stringify({
+          config: state,
+          moduleEnabled,
+          systemPrompt,
+          userPrompt,
+        })
       });
 
       if (!res.ok) {
@@ -933,12 +982,28 @@ CORE PRINCIPLES:
     document.getElementById('btn-refine').disabled = true;
 
     try {
-      conversationHistory.push({
-        role: 'user',
-        content: `Refine the educational game with this change: ${instruction}\n\nReturn the COMPLETE updated game code. Do not omit any parts. Ensure all educational content remains accurate and the learning objectives are still met.`,
+      // Route through server for proper token deduction and usage tracking
+      const res = await fetch('/api/edit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authToken ? `Bearer ${authToken}` : ''
+        },
+        body: JSON.stringify({
+          gameCode: lastGeneratedCode,
+          changes: instruction,
+          conversationHistory: conversationHistory,
+        })
       });
 
-      const response = await callLLM(conversationHistory);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Refinement failed' }));
+        throw new Error(err.error || 'Refinement failed');
+      }
+
+      const data = await res.json();
+      const response = data.editedCode || '';
+      conversationHistory.push({ role: 'user', content: `Refine the educational game with this change: ${instruction}\n\nReturn the COMPLETE updated game code. Do not omit any parts. Ensure all educational content remains accurate and the learning objectives are still met.` });
       conversationHistory.push({ role: 'assistant', content: response });
 
       const code = extractCode(response);

@@ -37,15 +37,28 @@ Use the **left sidebar** to define your educational game across 6 modules:
 
 ### 3. Generate Your Educational Game
 - Click the **⚡ Generate Educational Game** button in the header (or press `Ctrl + Enter`)
-- The app assembles your configuration into a detailed prompt and sends it to the AI
+- The app assembles your configuration into a detailed prompt and sends it to the **server-side Gemini API**
 - Once generated, the game appears in the **🎮 Game Sandbox** tab on the right
 - The assembled prompt is visible in the **📝 Prompt Preview** tab
+- **1 token is deducted** per generation (subscribers have unlimited access)
 
 ### 4. Refine Your Game
 After generating, use the **Refine bar** at the bottom of the sandbox:
 - Type a change request like *"Add a quiz at the end of each level"* or *"Make the questions easier for younger students"*
-- Click **🔄 Refine** or press `Enter`
+- Click **🔄 Refine** or press **Enter**
 - The AI will regenerate the game with your changes applied
+- **1 token is deducted** per refinement (subscribers have unlimited access)
+
+### 5. Advanced Generation (Subscribers)
+Subscribers can access premium AI models for higher-quality games:
+- **OpenAI** — GPT-4o and other OpenAI models (server-side, using the server's API key)
+- **Claude** — Anthropic's Claude models (server-side, using the server's API key)
+- These use the server's API keys — no client-side key needed
+- Available only with an active subscription
+
+### 6. Download Your Game
+- **Free download**: Click the **💾 Download** button to save the generated HTML file
+- **Unlocked download** (subscribers): Click **Download Unlocked Version** in the Account modal for a DRM-free version
 
 ---
 
@@ -176,8 +189,12 @@ Good learning objectives are specific and measurable:
 - Games use **Vanilla JS/Canvas** for rendering and game logic
 - No external dependencies or build tools required
 - Games run directly in the browser — just open the downloaded HTML file
-- API keys are stored in **localStorage only** and never sent to any server except your chosen API provider
+- **Generation** uses the server-side Gemini API (no client API key needed for generation)
+- **Refinement** also goes through the server, ensuring token deduction and usage tracking
+- **Advanced generation** (OpenAI/Claude) is available for subscribers via server-side API keys
+- API keys stored in the **Settings modal** are only used for the client-side API client (optional fallback)
 - The app uses separate localStorage keys from the original Game Creator, so both can coexist without conflicts
+- **Rate limiting**: Max 10 API requests per minute per user
 
 ---
 
@@ -204,6 +221,8 @@ Good learning objectives are specific and measurable:
    GITHUB_CLIENT_ID=...
    GITHUB_CLIENT_SECRET=...
    GEMINI_API_KEY=...
+   OPENAI_API_KEY=...        # For subscriber advanced generation
+   ANTHROPIC_API_KEY=...     # For subscriber advanced generation (Claude)
    ```
 
 ### Hosting Options (Under £10/month)
@@ -219,16 +238,9 @@ Good learning objectives are specific and measurable:
 1. Sign up at [render.com](https://render.com)
 2. Connect GitHub repo
 3. Choose "Web Service"
-4. Set build command: `npm install`
+4. Set build command: `npm install && npx prisma generate`
 5. Set start command: `npm start`
 6. Add environment variables
-
-#### Heroku (Deprecated but still works - £7/month)
-1. Sign up at [heroku.com](https://heroku.com)
-2. Install Heroku CLI
-3. `heroku create your-app-name`
-4. `git push heroku main`
-5. Set environment variables: `heroku config:set KEY=value`
 
 ### Stripe Setup
 1. Create account at [stripe.com](https://stripe.com)
@@ -243,11 +255,28 @@ Good learning objectives are specific and measurable:
 - **GitHub**: github.com/settings/developers → New OAuth App
 
 ### Database
-- SQLite database created automatically on first run
-- No additional setup required
-- Data persists in `database.sqlite` file
+- PostgreSQL database (via Prisma ORM)
+- Run `npx prisma migrate dev` to set up the schema locally
+- Run `npx prisma generate` to generate the Prisma client
+- On Railway, PostgreSQL is auto-provisioned and `DATABASE_URL` is set automatically
 
 ### Testing
 - Run locally: `npm start`
+- Run tests: `npm test`
 - Test payments in Stripe test mode
 - Use test card numbers from Stripe docs
+
+### API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/generate` | POST | JWT | Generate a game using server-side Gemini |
+| `/api/edit` | POST | JWT + tokens | Refine a game (supports conversation history) |
+| `/api/generate-advanced` | POST | JWT + subscription | Generate using OpenAI or Claude |
+| `/api/download-unlocked` | POST | JWT + subscription | Download DRM-free HTML file |
+| `/auth/register` | POST | None | Register with email/password |
+| `/auth/login` | POST | None | Login with email/password |
+| `/auth/profile` | GET | JWT | Get user profile and token count |
+| `/payments/create-checkout-session` | POST | JWT | Create Stripe checkout for tokens/edits |
+| `/payments/create-subscription` | POST | JWT | Create Stripe subscription checkout |
+| `/payments/webhook` | POST | None | Stripe webhook handler |

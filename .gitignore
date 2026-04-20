@@ -8,13 +8,16 @@ yarn.lock
 .env.local
 .env.*.local
 
+# Secrets
+App ID and Secret.txt
+
 # Database
 database.db
 database.db-shm
 database.db-wal
 
 # Prisma
-prisma/migrations/
+# (migrations should be committed)
 
 # IDE
 .vscode/

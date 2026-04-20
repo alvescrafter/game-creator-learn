@@ -45,6 +45,8 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 STRIPE_SECRET_KEY=sk_test_YOUR_TEST_SECRET_KEY_HERE
 STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET_HERE
 GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
 FRONTEND_URL=your-railway-url-will-be-provided
 ```
 
@@ -93,7 +95,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 - [ ] GitHub account connected to Railway
 - [ ] PostgreSQL database created on Railway
-- [ ] All 10 environment variables set
+- [ ] All 12 environment variables set
 - [ ] OAuth provider callbacks updated
 - [ ] Stripe webhook configured
 - [ ] App deployed successfully
