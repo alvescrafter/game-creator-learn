@@ -81,33 +81,43 @@
   const PROVIDER_PRESETS = {
     openai: {
       baseUrl: 'https://api.openai.com/v1',
-      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini'],
+      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o1', 'o1-mini', 'o3-mini'],
       defaultModel: 'gpt-4o',
       needsKey: true,
+      apiType: 'openai', // Uses /chat/completions with Bearer token
+      supportsModelList: true, // Can fetch /models endpoint
     },
     gemini: {
       baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
       models: ['gemini-2.5-pro-preview-03-25', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'],
       defaultModel: 'gemini-2.0-flash',
       needsKey: true,
+      apiType: 'openai', // Google's OpenAI-compatible endpoint
+      supportsModelList: true,
     },
     claude: {
       baseUrl: 'https://api.anthropic.com/v1',
-      models: ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
+      models: ['claude-sonnet-4-20250514', 'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
       defaultModel: 'claude-sonnet-4-20250514',
       needsKey: true,
+      apiType: 'anthropic', // Uses /messages with x-api-key header
+      supportsModelList: false,
     },
     ollama: {
       baseUrl: 'http://localhost:11434/v1',
       models: ['llama3.2', 'llama3.1', 'llama3', 'mistral', 'codellama', 'gemma2', 'phi3', 'qwen2', 'deepseek-coder-v2', 'mixtral'],
       defaultModel: 'llama3.2',
       needsKey: false,
+      apiType: 'openai', // Ollama's OpenAI-compatible endpoint
+      supportsModelList: true,
     },
     lmstudio: {
       baseUrl: 'http://localhost:1234/v1',
       models: [], // Populated dynamically from server
       defaultModel: '',
       needsKey: false,
+      apiType: 'openai', // LM Studio's OpenAI-compatible endpoint
+      supportsModelList: true,
     },
   };
 
@@ -448,8 +458,157 @@ CORE PRINCIPLES:
   // API CLIENT
   // ═══════════════════════════════════════════════
 
+  // ── Determine API type from current provider ──
+  function getApiType() {
+    const preset = PROVIDER_PRESETS[apiSettings.provider];
+    return preset?.apiType || 'openai';
+  }
+
+  // ── Fetch available models from the API ──
+  async function fetchAvailableModels() {
+    const baseUrl = apiSettings.baseUrl.replace(/\/+$/, '');
+    const preset = PROVIDER_PRESETS[apiSettings.provider];
+
+    // Only fetch for providers that support model listing
+    if (!preset?.supportsModelList) {
+      return preset?.models || [];
+    }
+
+    try {
+      const headers = {};
+      if (apiSettings.key) {
+        headers['Authorization'] = `Bearer ${apiSettings.key}`;
+      }
+
+      const res = await fetch(`${baseUrl}/models`, {
+        method: 'GET',
+        headers,
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (!res.ok) {
+        console.warn('Failed to fetch models:', res.status);
+        return preset?.models || [];
+      }
+
+      const data = await res.json();
+      const modelIds = (data.data || []).map(m => m.id).sort();
+
+      if (modelIds.length > 0) {
+        // Update the preset's models list dynamically
+        if (preset) preset.models = modelIds;
+        return modelIds;
+      }
+
+      return preset?.models || [];
+    } catch (err) {
+      console.warn('Could not fetch models:', err.message);
+      return preset?.models || [];
+    }
+  }
+
+  // ── Test API connection ──
+  async function testConnection() {
+    const baseUrl = apiSettings.baseUrl.replace(/\/+$/, '');
+    const apiType = getApiType();
+
+    try {
+      if (apiType === 'anthropic') {
+        // Test Claude connection
+        const headers = {
+          'Content-Type': 'application/json',
+          'x-api-key': apiSettings.key,
+          'anthropic-version': '2023-06-01',
+        };
+        const res = await fetch(`${baseUrl}/messages`, {
+          method: 'POST',
+          headers,
+          signal: AbortSignal.timeout(15000),
+          body: JSON.stringify({
+            model: apiSettings.model,
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'Hi' }],
+          }),
+        });
+        if (!res.ok) {
+          const errText = await res.text().catch(() => 'Unknown error');
+          throw new Error(`API Error ${res.status}: ${errText}`);
+        }
+        return { success: true, message: '✅ Claude API connected successfully!' };
+      } else {
+        // Test OpenAI-compatible connection
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (apiSettings.key) {
+          headers['Authorization'] = `Bearer ${apiSettings.key}`;
+        }
+        const res = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers,
+          signal: AbortSignal.timeout(15000),
+          body: JSON.stringify({
+            model: apiSettings.model,
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'Hi' }],
+            temperature: 0.1,
+          }),
+        });
+        if (!res.ok) {
+          const errText = await res.text().catch(() => 'Unknown error');
+          throw new Error(`API Error ${res.status}: ${errText}`);
+        }
+        return { success: true, message: '✅ API connected successfully!' };
+      }
+    } catch (err) {
+      return { success: false, message: `❌ Connection failed: ${err.message}` };
+    }
+  }
+
   async function callLLM(messages) {
     const baseUrl = apiSettings.baseUrl.replace(/\/+$/, ''); // trim trailing slash
+    const apiType = getApiType();
+
+    // ── Anthropic Claude native API ──
+    if (apiType === 'anthropic') {
+      const endpoint = `${baseUrl}/messages`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': apiSettings.key,
+        'anthropic-version': '2023-06-01',
+      };
+
+      // Convert OpenAI-style messages to Anthropic format
+      const systemMsg = messages.find(m => m.role === 'system');
+      const chatMessages = messages
+        .filter(m => m.role !== 'system')
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const body = {
+        model: apiSettings.model,
+        max_tokens: TECH_DEFAULTS.maxTokens,
+        messages: chatMessages,
+      };
+      if (systemMsg) body.system = systemMsg.content;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => 'Unknown error');
+        throw new Error(`API Error ${res.status}: ${errText}`);
+      }
+
+      const data = await res.json();
+      const content = data.content?.[0]?.text;
+      if (!content) throw new Error('API returned empty response');
+      return content;
+    }
+
+    // ── OpenAI-compatible API (OpenAI, Gemini, Ollama, LM Studio) ──
     const endpoint = `${baseUrl}/chat/completions`;
 
     const headers = {
@@ -1136,7 +1295,9 @@ CORE PRINCIPLES:
       // Highlight matching provider preset
       document.querySelectorAll('.provider-btn').forEach(btn => {
         const preset = PROVIDER_PRESETS[btn.dataset.provider];
-        if (preset && apiSettings.baseUrl === preset.baseUrl) {
+        const isActive = (apiSettings.provider && btn.dataset.provider === apiSettings.provider)
+          || (!apiSettings.provider && preset && apiSettings.baseUrl === preset.baseUrl);
+        if (isActive) {
           btn.classList.add('active');
           // Populate model dropdown for this provider
           const modelSelect = document.getElementById('modelPreset');
@@ -1153,6 +1314,12 @@ CORE PRINCIPLES:
       });
 
       openModal('modal-settings');
+
+      // Clear previous status messages
+      const connStatus = document.getElementById('connection-status');
+      if (connStatus) { connStatus.textContent = ''; connStatus.className = 'connection-status'; }
+      const detectStatus = document.getElementById('detect-models-status');
+      if (detectStatus) { detectStatus.style.display = 'none'; detectStatus.textContent = ''; detectStatus.className = 'field-hint'; }
     });
 
     // ── Save settings on close ──
@@ -1216,6 +1383,95 @@ CORE PRINCIPLES:
     document.getElementById('modelPreset').addEventListener('change', (e) => {
       if (e.target.value) {
         document.getElementById('modelName').value = e.target.value;
+      }
+    });
+
+    // ── Auto-Detect Models ──
+    document.getElementById('btn-detect-models').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-detect-models');
+      const statusEl = document.getElementById('detect-models-status');
+      const modelSelect = document.getElementById('modelPreset');
+      const modelInput = document.getElementById('modelName');
+
+      // Save current settings before detecting
+      apiSettings.baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      apiSettings.key = document.getElementById('apiKey').value.trim();
+      apiSettings.model = modelInput.value.trim();
+      const activeProvider = document.querySelector('.provider-btn.active');
+      apiSettings.provider = activeProvider ? activeProvider.dataset.provider : '';
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Detecting...';
+      statusEl.style.display = 'inline';
+      statusEl.textContent = 'Fetching models from server...';
+      statusEl.className = 'field-hint';
+
+      try {
+        const models = await fetchAvailableModels();
+
+        if (models.length > 0) {
+          // Populate the quick-select dropdown
+          modelSelect.innerHTML = '<option value="">— Quick Select —</option>';
+          models.forEach(model => {
+            const opt = document.createElement('option');
+            opt.value = model;
+            opt.textContent = model;
+            modelSelect.appendChild(opt);
+          });
+
+          // If current model is empty or not in the list, select the first one
+          if (!modelInput.value || !models.includes(modelInput.value)) {
+            modelInput.value = models[0];
+          }
+
+          statusEl.textContent = `✅ Found ${models.length} model${models.length !== 1 ? 's' : ''}`;
+          statusEl.className = 'field-hint success';
+          showToast(`Found ${models.length} available model${models.length !== 1 ? 's' : ''}`, 'success');
+        } else {
+          statusEl.textContent = '⚠️ No models found. Check your server URL and ensure it\'s running.';
+          statusEl.className = 'field-hint error';
+          showToast('No models found. Check your server URL.', 'warning');
+        }
+      } catch (err) {
+        statusEl.textContent = `❌ Error: ${err.message}`;
+        statusEl.className = 'field-hint error';
+        showToast('Failed to detect models: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Auto-Detect Models';
+      }
+    });
+
+    // ── Test Connection ──
+    document.getElementById('btn-test-connection').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-test-connection');
+      const statusEl = document.getElementById('connection-status');
+
+      // Save current settings before testing
+      apiSettings.baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      apiSettings.key = document.getElementById('apiKey').value.trim();
+      apiSettings.model = document.getElementById('modelName').value.trim();
+      apiSettings.temperature = parseFloat(document.getElementById('apiTemperature').value) || 0.7;
+      const activeProvider = document.querySelector('.provider-btn.active');
+      apiSettings.provider = activeProvider ? activeProvider.dataset.provider : '';
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Testing...';
+      statusEl.textContent = 'Connecting to API...';
+      statusEl.className = 'connection-status loading';
+
+      try {
+        const result = await testConnection();
+        statusEl.textContent = result.message;
+        statusEl.className = `connection-status ${result.success ? 'success' : 'error'}`;
+        showToast(result.message, result.success ? 'success' : 'error', 4000);
+      } catch (err) {
+        statusEl.textContent = `❌ Error: ${err.message}`;
+        statusEl.className = 'connection-status error';
+        showToast('Connection test failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔌 Test Connection';
       }
     });
 

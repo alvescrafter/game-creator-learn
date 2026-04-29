@@ -414,10 +414,10 @@
             <button class="provider-btn" data-provider="openai" title="OpenAI GPT models">
               <span class="provider-icon">🟢</span> OpenAI
             </button>
-            <button class="provider-btn" data-provider="gemini" title="Google Gemini via OpenAI-compatible endpoint">
+            <button class="provider-btn" data-provider="gemini" title="Google Gemini (OpenAI-compatible endpoint)">
               <span class="provider-icon">🔵</span> Gemini
             </button>
-            <button class="provider-btn" data-provider="claude" title="Anthropic Claude via OpenAI-compatible endpoint">
+            <button class="provider-btn" data-provider="claude" title="Anthropic Claude (native API)">
               <span class="provider-icon">🟠</span> Claude
             </button>
             <button class="provider-btn" data-provider="ollama" title="Ollama local LLM server">
@@ -450,6 +450,10 @@
               <!-- Populated dynamically by JS -->
             </select>
           </div>
+          <button id="btn-detect-models" class="btn btn-secondary btn-sm" title="Fetch available models from the API server">
+            🔍 Auto-Detect Models
+          </button>
+          <span id="detect-models-status" class="field-hint" style="display:none;"></span>
         </div>
         <div class="field-group">
           <label for="apiTemperature" class="field-label">
@@ -460,6 +464,10 @@
         </div>
       </div>
       <div class="modal-footer">
+        <button id="btn-test-connection" class="btn btn-secondary" title="Test API connection with current settings">
+          🔌 Test Connection
+        </button>
+        <span id="connection-status" class="connection-status"></span>
         <button class="btn btn-primary" data-close="modal-settings">Save</button>
       </div>
     </div>

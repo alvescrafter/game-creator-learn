@@ -1155,6 +1155,54 @@ body {
   flex-shrink: 0;
 }
 
+/* ── Auto-Detect Models Button ── */
+#btn-detect-models {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+}
+
+#detect-models-status {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+#detect-models-status.success {
+  color: var(--success);
+}
+
+#detect-models-status.error {
+  color: var(--danger);
+}
+
+/* ── Connection Test ── */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.connection-status {
+  font-size: 0.82rem;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
+.connection-status.success {
+  color: var(--success);
+}
+
+.connection-status.error {
+  color: var(--danger);
+}
+
+.connection-status.loading {
+  color: var(--text-muted);
+}
+
 /* ═══════════════ RESPONSIVE ═══════════════ */
 @media (max-width: 768px) {
   :root {
