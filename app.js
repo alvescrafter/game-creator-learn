@@ -283,7 +283,8 @@ CORE PRINCIPLES:
 - Difficulty should adapt or progress logically to keep learners in their zone of proximal development
 - Include positive reinforcement (celebrations, progress indicators, encouraging messages)
 - Ensure accessibility: clear fonts, good contrast, colour-blind safe palettes where possible
-- All educational content must be factually accurate and appropriate for the specified age range`;
+- All educational content must be factually accurate and appropriate for the specified age range
+- IMPORTANT: Do NOT exceed 20,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.`;
 
     // Always include tech stack context in background
     systemPrompt += `\n\nYou are proficient in ${TECH_DEFAULTS.framework}.`;
