@@ -119,6 +119,14 @@
       apiType: 'openai', // LM Studio's OpenAI-compatible endpoint
       supportsModelList: true,
     },
+    custom: {
+      baseUrl: '',
+      models: [],
+      defaultModel: '',
+      needsKey: true, // User decides if key is needed
+      apiType: 'openai', // Assumes OpenAI-compatible format
+      supportsModelList: true,
+    },
   };
 
   // ── App State ──
@@ -1351,11 +1359,18 @@ CORE PRINCIPLES:
         document.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Fill in base URL
-        document.getElementById('apiBaseUrl').value = preset.baseUrl;
+        // Fill in base URL (don't clear for custom — let user enter their own)
+        if (provider !== 'custom') {
+          document.getElementById('apiBaseUrl').value = preset.baseUrl;
+          document.getElementById('apiBaseUrl').placeholder = 'https://api.openai.com/v1';
+        } else {
+          document.getElementById('apiBaseUrl').placeholder = 'https://your-api-endpoint.com/v1';
+        }
 
-        // Fill in default model
-        document.getElementById('modelName').value = preset.defaultModel;
+        // Fill in default model (don't clear for custom)
+        if (provider !== 'custom') {
+          document.getElementById('modelName').value = preset.defaultModel;
+        }
 
         // Populate model quick-select dropdown
         const modelSelect = document.getElementById('modelPreset');
@@ -1371,6 +1386,8 @@ CORE PRINCIPLES:
         if (!preset.needsKey) {
           document.getElementById('apiKey').value = '';
           document.getElementById('apiKey').placeholder = 'Not required for local LLMs';
+        } else if (provider === 'custom') {
+          document.getElementById('apiKey').placeholder = 'Enter your API key (if required)';
         } else {
           document.getElementById('apiKey').placeholder = 'sk-... (enter your API key)';
         }
