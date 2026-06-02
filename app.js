@@ -56,7 +56,7 @@
     framework: 'Vanilla JS/Canvas',
     singleFile: true,
     assetHandling: 'Use placeholder colored rectangles and simple shapes',
-    maxTokens: 100000,
+    maxTokens: 50000,
   };
 
   const DEFAULT_API = {
@@ -292,16 +292,68 @@ CORE PRINCIPLES:
 - Include positive reinforcement (celebrations, progress indicators, encouraging messages)
 - Ensure accessibility: clear fonts, good contrast, colour-blind safe palettes where possible
 - All educational content must be factually accurate and appropriate for the specified age range
-- IMPORTANT: Do NOT exceed 20,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.`;
+- IMPORTANT: Do NOT exceed 50,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.
 
-    // Always include tech stack context in background
+MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screens and navigation:
+
+1. START MENU SCREEN:
+   - Game title with themed styling
+   - "Start Game" / "Play" button (prominent, clearly visible)
+   - "How to Play" / "Instructions" button that shows rules and controls
+   - "Settings" button (sound toggle, difficulty selector if applicable)
+   - Clean, attractive layout that sets the visual tone for the game
+
+2. GAME SCREEN:
+   - The main gameplay area with all game mechanics active
+   - A HUD (heads-up display) showing: score/progress, lives/health (if applicable), timer (if applicable), current level/round
+   - A clearly visible Pause button or icon (top-right corner or similar consistent position)
+   - Pressing ESC key MUST open the Pause Menu (this is mandatory)
+
+3. PAUSE MENU (overlay on game screen):
+   - "Resume" button to continue playing
+   - "Restart" button to restart the current level/game
+   - "How to Play" button to review instructions
+   - "Main Menu" button to return to the Start Menu
+   - Semi-transparent dark overlay behind the menu for visual clarity
+   - Pressing ESC while in the Pause Menu should Resume the game
+
+4. GAME OVER / LEVEL COMPLETE SCREEN:
+   - Clear display of final score, progress, or learning achievement
+   - "Play Again" / "Retry" button
+   - "Main Menu" button to return to the Start Menu
+   - For educational games: show a summary of what was learned, areas for improvement
+   - Positive/encouraging message regardless of performance
+
+5. STANDARDISED BUTTONS — Use consistent, recognisable button styles throughout:
+   - Primary action buttons (Start, Resume, Next Level): Bold, coloured, clearly labelled
+   - Secondary action buttons (How to Play, Settings): Outlined or lighter style
+   - Danger/negative buttons (Quit, Restart): Distinct style (red outline or similar)
+   - All buttons must have hover effects and be clearly clickable
+   - Minimum button size: 44px height for touch-friendly interaction
+   - Use emoji icons alongside text for clarity: ▶️ Start, ⏸️ Pause, 🔄 Restart, 🏠 Menu, ❓ Help, ⚙️ Settings
+
+6. KEYBOARD CONTROLS:
+   - ESC key: Opens Pause Menu during gameplay, Resumes from Pause Menu, or returns to previous screen
+   - Enter key: Confirms dialog selections
+   - Arrow keys / WASD: Movement (for applicable game types)
+   - Space: Common action button (jump, select, etc.)
+   - All keyboard controls must be documented in the How to Play section
+
+7. RESPONSIVE DESIGN:
+   - Game must work on both desktop and mobile screens
+   - Touch-friendly buttons for mobile users
+   - Canvas/game area should scale appropriately
+
+8. SINGLE HTML FILE:
+   - ALL HTML, CSS, and JavaScript must be in ONE self-contained .html file
+   - No external dependencies, CDN links, or separate files
+   - All assets must be generated with code (CSS shapes, canvas drawing, emoji, Unicode characters)
+   - The game must be immediately playable when opened in a browser`;
+
+    // Always include tech stack context
     systemPrompt += `\n\nYou are proficient in ${TECH_DEFAULTS.framework}.`;
-
-    // Always use single file mode
-    systemPrompt += '\n\nIMPORTANT: Deliver the ENTIRE game in a SINGLE HTML file including all CSS and JavaScript. Ensure all logic is contained within the file. Do NOT split into separate files.';
-
-    // Always include framework instruction
     systemPrompt += `\n\nUse ${TECH_DEFAULTS.framework} for rendering and game logic.`;
+    systemPrompt += `\n\nAsset Handling: ${TECH_DEFAULTS.assetHandling}. Do NOT use any external images, sounds, or CDN links. All visuals must be created with CSS, Canvas API drawing, emoji, or Unicode characters.`;
 
     // ── User Prompt: Educational Game Specification ──
     let userPrompt = '';
@@ -379,8 +431,8 @@ CORE PRINCIPLES:
     // ── Output Requirements — Educational Game Specific ──
     userPrompt += '**Output Requirements:**\n';
     userPrompt += '- Generate a complete, playable educational game based on the above specifications.\n';
-    userPrompt += '- Include all necessary HTML, CSS, and JavaScript.\n';
-    userPrompt += '- Make the game immediately playable with no additional setup.\n';
+    userPrompt += '- Include all necessary HTML, CSS, and JavaScript in a SINGLE self-contained .html file.\n';
+    userPrompt += '- Make the game immediately playable when opened in a browser — no build step, no server, no external dependencies.\n';
     userPrompt += '- The game MUST teach the specified subject/topic effectively.\n';
     userPrompt += '- Include clear learning objectives displayed at the start or in a help section.\n';
     userPrompt += '- Provide immediate feedback for every learner action (correct AND incorrect).\n';
@@ -388,8 +440,29 @@ CORE PRINCIPLES:
     userPrompt += '- Include a scoring/progress system that tracks learning achievement.\n';
     userPrompt += '- Add encouraging messages and positive reinforcement throughout.\n';
     userPrompt += '- Ensure all content is age-appropriate for the specified age range.\n';
-    userPrompt += '- Include a simple HUD showing score/progress if applicable.\n';
+    userPrompt += '- Include a HUD showing score/progress, lives, level, and timer where applicable.\n';
     userPrompt += '- Make the educational content the core gameplay loop, not an afterthought.\n';
+    userPrompt += '\n';
+    userPrompt += '**MANDATORY GAME SCREENS (include ALL of these):**\n';
+    userPrompt += '1. START MENU: Title, ▶️ Start Game button, ❓ How to Play button, ⚙️ Settings button\n';
+    userPrompt += '2. GAME SCREEN: Main gameplay with HUD (score, lives, level) and ⏸️ Pause button\n';
+    userPrompt += '3. PAUSE MENU (ESC key opens this): 🔄 Resume, 🔄 Restart, ❓ How to Play, 🏠 Main Menu\n';
+    userPrompt += '4. GAME OVER / COMPLETE SCREEN: Final score, learning summary, 🔄 Play Again, 🏠 Main Menu\n';
+    userPrompt += '\n';
+    userPrompt += '**KEYBOARD CONTROLS (mandatory):**\n';
+    userPrompt += '- ESC key: Opens Pause Menu during gameplay, Resumes from Pause Menu, returns to previous screen\n';
+    userPrompt += '- Enter: Confirms selections in menus\n';
+    userPrompt += '- Arrow keys / WASD: Movement (for applicable game types)\n';
+    userPrompt += '- Space: Common action (jump, select, etc.)\n';
+    userPrompt += '- All controls must be documented in the How to Play section\n';
+    userPrompt += '\n';
+    userPrompt += '**BUTTON STANDARDS:**\n';
+    userPrompt += '- All buttons must have hover effects and be clearly clickable (min 44px height)\n';
+    userPrompt += '- Use emoji icons with text: ▶️ Start, ⏸️ Pause, 🔄 Restart, 🏠 Menu, ❓ Help, ⚙️ Settings\n';
+    userPrompt += '- Primary buttons (Start, Resume): Bold, coloured background\n';
+    userPrompt += '- Secondary buttons (How to Play, Settings): Outlined or lighter style\n';
+    userPrompt += '- Danger buttons (Quit, Restart): Red/outlined style\n';
+    userPrompt += '- Buttons must be touch-friendly for mobile users\n';
 
     return { systemPrompt, userPrompt };
   }
