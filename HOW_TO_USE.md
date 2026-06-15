@@ -180,6 +180,9 @@ Good learning objectives are specific and measurable:
 - No external dependencies or build tools required
 - Games run directly in the browser — just open the downloaded HTML file
 - **Generation** and **refinement** use your configured AI provider (set in the Settings modal)
-- API keys are stored locally in your browser and sent directly to the AI provider
-- The app uses separate localStorage keys from the original Game Creator, so both can coexist without conflicts
+---
+
+## Pinokio Launcher
+
+A Pinokio manifest and one-click install instructions are available in [PINOKIO.md](PINOKIO.md). The repository also includes `pinokio.json` in the project root to support manual or community installs via Pinokio.
 

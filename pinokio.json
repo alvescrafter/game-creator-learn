@@ -1,0 +1,15 @@
+{
+  "name": "Game Creator Learn",
+  "version": "1.0.0",
+  "description": "Educational Game Prompt Orchestrator — generates single-file HTML5 educational games via AI.",
+  "dependencies": [
+    "git+https://github.com/alvescrafter/game-creator-learn.git"
+  ],
+  "install_commands": [
+    "npm install"
+  ],
+  "run_commands": [
+    "node app.js"
+  ],
+  "tags": ["game","education","ai","node","express"]
+}
