@@ -1,0 +1,55 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Game Creator Learn",
+  "name_for_model": "game_creator_learn",
+  "description_for_human": "Create engaging educational games with AI. Choose any subject, set difficulty and age range, pick game mechanics, and generate complete playable learning games instantly. Free, no signup required.",
+  "description_for_model": "Game Creator Learn is a free, browser-based AI tool that generates complete playable educational HTML5 games. Users configure learning parameters (subject, topic, difficulty, age range, game type, mechanics, visuals, audio) through a sidebar interface, and the app assembles a detailed prompt sent to a user-chosen LLM provider to produce a single-file HTML game. Supports 12 subjects, 12 game types, 15+ mechanics, 6 age ranges, 6 LLM providers (OpenAI, Gemini, Claude, Ollama, LM Studio, Custom). All generation happens client-side — no backend, no signup, BYOK API keys.",
+  "url": "https://aigamecreatorlearn.netlify.app/",
+  "contact_email": "",
+  "legal_info_url": "https://github.com/alvescrafter/game-creator-learn",
+  "logo": {
+    "url": "https://aigamecreatorlearn.netlify.app/favicon.svg",
+    "type": "image/svg+xml"
+  },
+  "capabilities": {
+    "type": "client-side-web-app",
+    "backend": false,
+    "api_surface": "none — all LLM calls happen client-side via fetch() to user-configured providers",
+    "interaction_model": "User configures parameters in sidebar UI → app assembles prompt → LLM generates HTML5 game → game renders in iframe sandbox → user can refine via multi-turn conversation"
+  },
+  "supported_providers": [
+    {"name": "OpenAI", "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"]},
+    {"name": "Google Gemini", "models": ["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro", "gemini-1.5-flash"]},
+    {"name": "Anthropic Claude", "models": ["claude-sonnet-4-20250514", "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"]},
+    {"name": "Ollama", "models": ["llama3.2", "llama3.1", "llama3", "mistral", "codellama", "gemma2", "phi3", "qwen2", "deepseek-coder-v2", "mixtral"]},
+    {"name": "LM Studio", "models": ["auto-detected from local server"]},
+    {"name": "Custom API", "models": ["user-specified"]}
+  ],
+  "input_parameters": {
+    "subject": {"type": "enum", "values": ["Maths", "English", "Physics", "Biology", "Chemistry", "History", "Geography", "Computer Science", "Art", "Music", "Foreign Languages", "Other"]},
+    "game_type": {"type": "enum", "values": ["Quiz/Trivia", "Platformer", "Puzzle", "RPG", "Simulation", "Adventure", "Strategy", "Racing", "Idle/Incremental", "Visual Novel", "Escape Room", "Card Game"]},
+    "age_range": {"type": "enum", "values": ["5-8 years", "9-11 years", "12-15 years", "16-18 years", "University", "Masters/Postgraduate"]},
+    "difficulty": {"type": "enum", "values": ["Beginner", "Intermediate", "Advanced", "Expert"]}
+  },
+  "output_format": {
+    "type": "HTML5 single file",
+    "contains": ["HTML", "CSS", "JavaScript", "Canvas rendering"],
+    "external_dependencies": false,
+    "downloadable": true
+  },
+  "pricing": {
+    "model": "free",
+    "price": 0,
+    "currency": "GBP",
+    "signup_required": false,
+    "byok": true
+  },
+  "discovery": {
+    "llms_txt": "https://aigamecreatorlearn.netlify.app/llms.txt",
+    "llms_full_txt": "https://aigamecreatorlearn.netlify.app/llms-full.txt",
+    "ai_json": "https://aigamecreatorlearn.netlify.app/ai.json",
+    "agents_md": "https://aigamecreatorlearn.netlify.app/AGENTS.md",
+    "sitemap_xml": "https://aigamecreatorlearn.netlify.app/sitemap.xml",
+    "sitemap_md": "https://aigamecreatorlearn.netlify.app/sitemap.md"
+  }
+}

@@ -1,0 +1,92 @@
+# netlify.toml — Game Creator Learn
+# Static site configuration with AI agent discovery headers
+
+[build]
+  # No build step — this is a static site
+  publish = "."
+
+# ── Content-Type headers for AI discovery files ──
+
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/llms-full.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/ai.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/brand.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/AGENTS.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/HOW_TO_USE.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+
+[[headers]]
+  for = "/PINOKIO.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+
+[[headers]]
+  for = "/sitemap.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+
+[[headers]]
+  for = "/ai.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/.well-known/ai-plugin.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/.well-known/agents.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/.well-known/agent-skills/index.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+# ── Link headers (RFC 8288) — announce discovery resources ──
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Link = '''
+      </llms.txt>; rel="describedby"; type="text/plain",
+      </llms-full.txt>; rel="alternate"; type="text/plain"; title="Full content for AI ingestion",
+      </ai.json>; rel="describedby"; type="application/json",
+      </sitemap.xml>; rel="sitemap"; type="application/xml",
+      </.well-known/ai-plugin.json>; rel="service"; type="application/json",
+      </.well-known/agents.json>; rel="service"; type="application/json"'''
+    Content-Signal = "ai-train=yes, search=yes, ai-input=yes"
+    X-Robots-Tag = "index, follow, max-image-preview:large"

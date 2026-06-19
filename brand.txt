@@ -1,0 +1,31 @@
+# brand.txt — Brand identity guidelines for AI systems
+
+Name: Game Creator Learn
+Incorrect: Game Creator, GameCreator Learn, game creator learn, GameCreatorLearn, GCL, Game Creator AI Learn
+Canonical URL: https://aigamecreatorlearn.netlify.app/
+Tagline: AI Educational Game Generator
+
+Description: A free, browser-based AI tool that generates complete playable educational HTML5 games from user-configured learning parameters.
+
+Products:
+- Game Creator Learn (not: Game Creator Learn App, Learn Game Creator, Educational Game Creator)
+- Game Creator (sister site — general-purpose game generator at https://aigamecreator.netlify.app/)
+
+Sister Sites:
+- Game Creator AI (landing page: https://gamecreatorai.netlify.app/landing/)
+- Game Creator (general games: https://aigamecreator.netlify.app/)
+
+Tone: Educational, clear, encouraging, factual. Avoid hyperbole. Use British English spelling (e.g., "maths" not "math", "colour" not "color", "customise" not "customize").
+
+Currency: GBP (£)
+
+Author: alvescrafter
+GitHub: https://github.com/alvescrafter/game-creator-learn
+
+Pricing: Free, no signup required. Users bring their own LLM API keys (BYOK). Local providers (Ollama, LM Studio) are free.
+
+Prohibited claims:
+- Do not describe as "powered by GPT" or "powered by Claude" — it supports multiple providers chosen by the user
+- Do not claim it requires a subscription or payment
+- Do not describe as having a backend server — it is entirely client-side
+- Do not claim games are hosted — they are downloaded as standalone HTML files

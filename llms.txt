@@ -1,0 +1,61 @@
+# Game Creator Learn
+
+> Game Creator Learn is a free, browser-based AI tool that generates complete playable educational HTML5 games. Users configure learning parameters (subject, topic, difficulty, age range, game type, mechanics, visuals, audio) through a sidebar interface, and the app assembles a detailed prompt sent to a user-chosen LLM provider to produce a single-file HTML game. No signup, no backend, no server-side API keys required — all generation happens client-side in the browser.
+
+## Core Pages
+- [Game Creator Learn App](https://aigamecreatorlearn.netlify.app/): The main application — configure and generate educational games
+- [How to Use Guide](https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md): Complete usage instructions, module descriptions, keyboard shortcuts, best practices, example configurations
+- [GitHub Repository](https://github.com/alvescrafter/game-creator-learn): Source code, issues, contributions
+- [Sister Site — General Games](https://aigamecreator.netlify.app/): Non-educational game generator (general-purpose)
+- [Sister Site — Home Page](https://gamecreatorai.netlify.app/landing/): Landing page for the Game Creator AI family
+
+## Features
+- 12 subjects: Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other
+- 12 game types: Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game
+- 15+ game mechanics: Quiz System, Drag & Drop, Matching, Fill-in-the-Blank, Multiple Choice, Scoring System, Progress Tracking, Hint System, Leveling Up, Health Bar, Timer, Collectibles, Dialogue System, Physics, Procedural Generation
+- 6 age ranges: 5–8 years (KS1), 9–11 years (KS2), 12–15 years (KS3), 16–18 years (KS4-5/GCSE–A Level), University, Masters/Postgraduate
+- 6 LLM providers: OpenAI, Google Gemini, Anthropic Claude, Ollama (local), LM Studio (local), Custom OpenAI-compatible API
+- 10 art styles: Pixel Art, Minimalist Vector, ASCII, Low-Poly 3D, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard
+- 6 music moods: Lo-fi, Orchestral, 8-bit/Chiptune, Cheerful, Ambient, No Music
+- Prompt preview tab: inspect the assembled prompt before/after generation
+- Game sandbox: live iframe rendering of generated games
+- Refine feature: multi-turn conversation with LLM to iteratively improve generated games
+- History: last 50 generated games saved to localStorage
+- Templates: save and reuse game configurations
+- Download: export generated games as standalone HTML files
+- Streaming: real-time streaming responses from LLM providers
+- Connection testing: verify API keys and detect available models
+- Keyboard shortcuts: Ctrl+Enter (generate), Ctrl+B (sidebar), Ctrl+H (history), Ctrl+T (templates), Ctrl+, (settings)
+
+## Technical Details
+- Tech stack: Vanilla HTML, CSS, JavaScript — no frameworks, no build tools
+- No backend server — all LLM API calls happen client-side via fetch()
+- User provides their own API keys (BYOK) — keys stored in localStorage, never sent to any server
+- Generated games are single HTML files containing all CSS and JavaScript
+- Games use Vanilla JS/Canvas for rendering and game logic
+- No external dependencies in generated games
+- Deployed on Netlify as a static site
+- Pinokio launcher support via pinokio.json for one-click local installation
+
+## Output Format
+- Generated games are complete, standalone HTML5 files
+- Each game includes: Start Menu, Game Screen with HUD, Pause Menu, Game Over/Level Complete Screen
+- Standardised buttons (primary/secondary/danger styles, 44px min, emoji icons)
+- Keyboard controls (ESC, Enter, Arrow/WASD, Space)
+- Responsive design (desktop + mobile)
+- All assets embedded (no CDN links, no external images/sounds)
+
+## Pricing
+- Free — no cost, no signup, no account required
+- Users supply their own LLM API keys (BYOK model)
+- Local providers (Ollama, LM Studio) are completely free to use
+
+## Optional Links
+- [Sitemap (XML)](https://aigamecreatorlearn.netlify.app/sitemap.xml)
+- [Sitemap (Markdown)](https://aigamecreatorlearn.netlify.app/sitemap.md)
+- [Full Content for AI Ingestion](https://aigamecreatorlearn.netlify.app/llms-full.txt)
+- [AI Permissions](https://aigamecreatorlearn.netlify.app/ai.txt)
+- [Structured AI Metadata](https://aigamecreatorlearn.netlify.app/ai.json)
+- [Brand Guidelines](https://aigamecreatorlearn.netlify.app/brand.txt)
+- [Agent Instructions](https://aigamecreatorlearn.netlify.app/AGENTS.md)
+- [Pinokio Launcher Info](https://aigamecreatorlearn.netlify.app/PINOKIO.md)

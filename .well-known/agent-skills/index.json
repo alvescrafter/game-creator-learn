@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "name": "Game Creator Learn",
+  "description": "AI-powered educational game generator — create playable HTML5 learning games for any subject",
+  "url": "https://aigamecreatorlearn.netlify.app/",
+  "skills": [
+    {
+      "name": "educational-game-generation",
+      "description": "Generate complete, playable educational HTML5 games from configurable learning parameters (subject, topic, difficulty, age range, game type, mechanics, visuals, audio)",
+      "url": "https://aigamecreatorlearn.netlify.app/llms-full.txt",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "subject": {"type": "string", "enum": ["Maths", "English", "Physics", "Biology", "Chemistry", "History", "Geography", "Computer Science", "Art", "Music", "Foreign Languages", "Other"]},
+          "topic": {"type": "string", "description": "Specific topic within the subject (e.g., 'Fractions', 'Photosynthesis')"},
+          "learning_objective": {"type": "string", "description": "What the student should learn"},
+          "age_range": {"type": "string", "enum": ["5-8 years", "9-11 years", "12-15 years", "16-18 years", "University", "Masters/Postgraduate"]},
+          "difficulty": {"type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "Expert"]},
+          "game_type": {"type": "string", "enum": ["Quiz/Trivia", "Platformer", "Puzzle", "RPG", "Simulation", "Adventure", "Strategy", "Racing", "Idle/Incremental", "Visual Novel", "Escape Room", "Card Game"]}
+        },
+        "required": ["subject", "topic", "game_type"]
+      }
+    },
+    {
+      "name": "prompt-orchestration",
+      "description": "Assemble detailed, structured prompts for LLMs from modular configuration — 6 toggleable modules (Educational Topic, Difficulty, Core Identity, Mechanics, Visuals, Audio) with conflict validation",
+      "url": "https://aigamecreatorlearn.netlify.app/AGENTS.md"
+    },
+    {
+      "name": "game-refinement",
+      "description": "Iteratively refine generated games via multi-turn conversation with an LLM — send change requests to modify existing game code",
+      "url": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md"
+    },
+    {
+      "name": "template-management",
+      "description": "Save and reuse game configuration templates — persist favorite parameter combinations for quick regeneration",
+      "url": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md"
+    }
+  ]
+}

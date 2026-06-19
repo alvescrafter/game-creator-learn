@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "name": "Game Creator Learn",
+  "description": "Free, browser-based AI tool that generates complete playable educational HTML5 games from user-configured learning parameters.",
+  "url": "https://aigamecreatorlearn.netlify.app/",
+  "version": "1.0.0",
+  "capabilities": {
+    "protocols": ["https"],
+    "authentication": {
+      "type": "none",
+      "note": "No authentication required. Users configure their own LLM API keys client-side (BYOK)."
+    },
+    "api_endpoints": {
+      "note": "No server-side API endpoints. All LLM calls happen client-side via fetch() to user-configured providers.",
+      "client_side_apis": [
+        {"provider": "OpenAI", "endpoint": "https://api.openai.com/v1/chat/completions", "format": "openai-native"},
+        {"provider": "Google Gemini", "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", "format": "openai-compatible"},
+        {"provider": "Anthropic Claude", "endpoint": "https://api.anthropic.com/v1/messages", "format": "anthropic-native"},
+        {"provider": "Ollama", "endpoint": "http://localhost:11434/v1/chat/completions", "format": "openai-compatible"},
+        {"provider": "LM Studio", "endpoint": "http://localhost:1234/v1/chat/completions", "format": "openai-compatible"},
+        {"provider": "Custom API", "endpoint": "user-specified", "format": "openai-compatible"}
+      ]
+    },
+    "streaming": true,
+    "output_formats": ["HTML5 single file"]
+  },
+  "skills": [
+    {
+      "name": "educational-game-generation",
+      "description": "Generate complete playable educational HTML5 games from configurable learning parameters"
+    },
+    {
+      "name": "prompt-orchestration",
+      "description": "Assemble detailed structured prompts for LLMs from modular configuration"
+    },
+    {
+      "name": "game-refinement",
+      "description": "Iteratively refine generated games via multi-turn LLM conversation"
+    },
+    {
+      "name": "template-management",
+      "description": "Save and reuse game configuration templates"
+    }
+  ],
+  "resources": {
+    "llms_txt": "https://aigamecreatorlearn.netlify.app/llms.txt",
+    "llms_full_txt": "https://aigamecreatorlearn.netlify.app/llms-full.txt",
+    "ai_json": "https://aigamecreatorlearn.netlify.app/ai.json",
+    "agents_md": "https://aigamecreatorlearn.netlify.app/AGENTS.md",
+    "how_to_use": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md",
+    "source_code": "https://github.com/alvescrafter/game-creator-learn",
+    "sitemap_xml": "https://aigamecreatorlearn.netlify.app/sitemap.xml",
+    "sitemap_md": "https://aigamecreatorlearn.netlify.app/sitemap.md"
+  },
+  "provider": {
+    "name": "alvescrafter",
+    "url": "https://github.com/alvescrafter",
+    "repository": "https://github.com/alvescrafter/game-creator-learn"
+  },
+  "security": {
+    "data_storage": "localStorage (browser-only, no server-side storage)",
+    "api_key_handling": "User API keys stored in localStorage, never transmitted to any server other than the configured LLM provider",
+    "authentication_required": false
+  }
+}

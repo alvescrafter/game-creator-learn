@@ -1,0 +1,273 @@
+# Game Creator Learn — Full Content for AI Ingestion
+
+> Game Creator Learn is a free, browser-based AI tool that generates complete playable educational HTML5 games. Users configure learning parameters through a sidebar interface, and the app assembles a detailed prompt sent to a user-chosen LLM provider to produce a single-file HTML game. No signup, no backend, no server-side API keys required — all generation happens client-side in the browser. Users bring their own API keys (BYOK model).
+
+URL: https://aigamecreatorlearn.netlify.app/
+GitHub: https://github.com/alvescrafter/game-creator-learn
+Pricing: Free (users supply their own LLM API keys; local providers like Ollama and LM Studio are completely free)
+Language: English (British English spelling)
+Currency: GBP (£)
+
+---
+
+## How It Works
+
+Game Creator Learn is an Educational Game Prompt Orchestrator. It does NOT generate games itself — it assembles a detailed, structured prompt from user configuration and sends it to the user's chosen AI provider (OpenAI, Gemini, Claude, Ollama, LM Studio, or a custom OpenAI-compatible API). The LLM then generates a complete, standalone HTML5 game.
+
+### Generation Process
+1. User configures educational parameters in the sidebar (6 modules)
+2. App assembles a detailed system prompt + user prompt from the configuration
+3. Prompt is sent to the user's configured LLM provider via client-side fetch()
+4. LLM generates a complete HTML5 game (single file, all CSS/JS embedded)
+5. Game is rendered live in an iframe sandbox
+6. User can refine the game via multi-turn conversation with the LLM
+7. User can download the game as a standalone HTML file
+
+### Refinement Process
+- After generating, users type a change request (e.g., "Add a quiz at the end of each level")
+- The app sends the previous game code + the refinement request to the LLM
+- The LLM regenerates the game with the changes applied
+- This can be repeated iteratively
+
+---
+
+## Sidebar Modules (6)
+
+### Module 1: Educational Topic
+The most important module — drives the entire game's learning content.
+
+| Field | Description |
+|-------|-------------|
+| Subject | 12 subjects: Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other |
+| Specific Topic | Free text — describe the specific topic (e.g., "Fractions", "Photosynthesis", "Shakespeare's Sonnets") |
+| Learning Objective | Free text — what the student should learn (e.g., "Understand how to add fractions with different denominators") |
+
+### Module 2: Difficulty & Age Range
+| Field | Description |
+|-------|-------------|
+| Age Range | 5–8 years (KS1/Early), 9–11 years (KS2/Primary), 12–15 years (KS3/Lower Secondary), 16–18 years (KS4-5/GCSE–A Level), University, Masters/Postgraduate |
+| Difficulty Level | Beginner, Intermediate, Advanced, Expert |
+| Accessibility Notes | Free text — specify accessibility needs (e.g., "Dyslexia-friendly fonts", "Colour-blind safe", "Large text for young readers") |
+
+The age range affects vocabulary complexity, content depth, and UI design. The AI automatically adjusts language and difficulty to match the selected age group.
+
+### Module 3: Core Identity
+| Field | Description |
+|-------|-------------|
+| Game Type | 12 types: Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game |
+| Setting / Theme | Free text — describe your game world (e.g., "Space Explorer Maths", "Chemistry Lab Adventure") |
+| Tone | Slider from Serious/Academic (0) to Playful/Fun (100) |
+
+### Module 4: Mechanics & Gameplay
+| Field | Description |
+|-------|-------------|
+| Mechanics | Click-to-toggle tags: Quiz System, Drag & Drop, Matching, Fill-in-the-Blank, Multiple Choice, Scoring System, Progress Tracking, Hint System, Leveling Up, Health Bar, Timer, Collectibles, Dialogue System, Physics, Procedural Generation |
+| Specific Rules | Free text — custom rules (e.g., "Player earns stars for correct answers, loses a life for wrong ones") |
+| Difficulty Curve | Linear, Exponential, Adaptive (adjusts to learner), S-Curve |
+
+### Module 5: Visual & Aesthetic
+| Field | Description |
+|-------|-------------|
+| Art Style | Pixel Art, Minimalist Vector, ASCII, Low-Poly 3D, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard |
+| Color Palette | Pick Primary, Secondary, and Background colors |
+| Visual Effects | Free text — describe VFX (e.g., "Confetti on correct answer", "Star particles on level up") |
+
+### Module 6: Audio & Soundscape
+| Field | Description |
+|-------|-------------|
+| Music Mood | Lo-fi, Orchestral, 8-bit/Chiptune, Cheerful, Ambient, No Music |
+| SFX Requirements | Free text — describe sound effects (e.g., "Ding for correct answer", "Buzz for wrong answer") |
+
+Each module has a toggle switch — turn off any module you don't want included in the prompt.
+
+---
+
+## LLM Providers (6)
+
+All providers are configured client-side. Users bring their own API keys (BYOK). Keys are stored in localStorage and never sent to any server.
+
+### 1. OpenAI
+- Models: gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-4, gpt-3.5-turbo, o1, o1-mini, o3-mini
+- Default model: gpt-4o
+- API key required: Yes
+- Supports model listing: Yes (fetches /models endpoint)
+- API format: OpenAI native
+
+### 2. Google Gemini
+- Models: gemini-2.5-pro-preview-03-25, gemini-2.0-flash, gemini-2.0-flash-lite, gemini-1.5-pro, gemini-1.5-flash
+- Default model: gemini-2.0-flash
+- API key required: Yes
+- Supports model listing: Yes
+- API format: OpenAI-compatible endpoint
+
+### 3. Anthropic Claude
+- Models: claude-sonnet-4-20250514, claude-3-7-sonnet-20250219, claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022, claude-3-opus-20240229
+- Default model: claude-sonnet-4-20250514
+- API key required: Yes
+- Supports model listing: No
+- API format: Anthropic native (converted from OpenAI format internally)
+
+### 4. Ollama (Local)
+- Models: llama3.2, llama3.1, llama3, mistral, codellama, gemma2, phi3, qwen2, deepseek-coder-v2, mixtral
+- Default model: llama3.2
+- API key required: No (runs locally)
+- Supports model listing: Yes
+- API format: OpenAI-compatible
+- Default endpoint: http://localhost:11434
+
+### 5. LM Studio (Local)
+- Models: Populated dynamically from server
+- Default model: (auto-detected)
+- API key required: No (runs locally)
+- Supports model listing: Yes
+- API format: OpenAI-compatible
+- Default endpoint: http://localhost:1234
+
+### 6. Custom API
+- Models: User-specified
+- Default model: User-specified
+- API key required: Depends on endpoint
+- Supports model listing: Yes
+- API format: OpenAI-compatible
+- Endpoint: User-specified
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Ctrl + Enter | Generate Educational Game |
+| Ctrl + B | Toggle Sidebar |
+| Ctrl + H | Open History |
+| Ctrl + T | Open Templates |
+| Ctrl + , | Open API Settings |
+| Escape | Close modals / Exit fullscreen |
+
+---
+
+## Educational Game Best Practices
+
+### Choosing the Right Game Type
+- Quiz/Trivia — Best for knowledge recall and fact-based learning (vocabulary, dates, definitions)
+- Puzzle — Great for problem-solving and logical thinking (maths, coding concepts)
+- Platformer — Engaging for younger learners; combine movement with subject challenges
+- Simulation — Ideal for science experiments, historical scenarios, and real-world applications
+- Escape Room — Excellent for collaborative problem-solving and critical thinking
+- Card Game — Good for matching, categorisation, and memory-based learning
+
+### Setting Age-Appropriate Content
+- 5–8 years: Simple vocabulary, large text, bright colours, short activities, lots of positive reinforcement
+- 9–11 years: More complex concepts, longer activities, introduction of scoring systems
+- 12–15 years: Abstract thinking, multi-step problems, competitive elements
+- 16–18 years: Exam-revision style, detailed feedback, progress tracking
+- University: Complex scenarios, research-based challenges, in-depth analysis
+- Masters/Postgraduate: Advanced simulations, case studies, professional-level content
+
+### Writing Effective Learning Objectives
+Good learning objectives are specific and measurable:
+- Good: "Understand how to add fractions with different denominators"
+- Good: "Identify the main organs of the human digestive system"
+- Good: "Apply Newton's second law to calculate force"
+- Poor: "Learn about maths" (too vague)
+- Poor: "Know science" (not measurable)
+
+---
+
+## Example Configurations
+
+### Maths Quiz for 9-11 Year Olds
+- Subject: Maths
+- Topic: Multiplication Tables
+- Learning Objective: "Recall multiplication facts up to 12×12 quickly and accurately"
+- Age Range: 9–11 years (KS2/Primary)
+- Difficulty: Beginner
+- Game Type: Quiz
+- Mechanics: Quiz System, Scoring System, Timer, Progress Tracking
+
+### Biology Escape Room for 16-18 Year Olds
+- Subject: Biology
+- Topic: Cell Biology
+- Learning Objective: "Identify organelles and explain their functions in eukaryotic cells"
+- Age Range: 16–18 years (KS4-5/GCSE–A Level)
+- Difficulty: Advanced
+- Game Type: Escape Room
+- Mechanics: Hint System, Dialogue System, Progress Tracking, Scoring System
+
+### Physics Platformer for 12-15 Year Olds
+- Subject: Physics
+- Topic: Forces and Motion
+- Learning Objective: "Apply the relationship between force, mass, and acceleration"
+- Age Range: 12–15 years (KS3/Lower Secondary)
+- Difficulty: Intermediate
+- Game Type: Platformer
+- Mechanics: Physics, Collectibles, Leveling Up, Progress Tracking
+
+---
+
+## Generated Game Structure
+
+All generated games follow a mandatory structure:
+
+1. Start Menu Screen — title, Start button, How to Play button, Settings button
+2. Game Screen — HUD with score/lives/level/timer, Pause button, ESC key support
+3. Pause Menu — Resume, Restart, How to Play, Main Menu, ESC to resume
+4. Game Over / Level Complete Screen — score, learning summary, Play Again, Main Menu
+5. Standardised Buttons — primary/secondary/danger styles, 44px minimum, emoji icons
+6. Keyboard Controls — ESC, Enter, Arrow/WASD, Space
+7. Responsive Design — desktop + mobile
+8. Single HTML File — no external dependencies, all assets via code, no CDN links
+
+---
+
+## Technical Details
+
+- All games are generated as single HTML files containing all CSS and JavaScript
+- Games use Vanilla JS/Canvas for rendering and game logic
+- No external dependencies or build tools required
+- Games run directly in the browser — just open the downloaded HTML file
+- Generation and refinement use the user's configured AI provider
+- Token limit: 50,000 tokens per generation
+- Streaming support: real-time streaming responses from LLM providers
+- History: last 50 generated games saved to localStorage
+- Templates: save and reuse game configurations (localStorage)
+- Connection testing: verify API keys and detect available models before use
+
+---
+
+## Tech Stack
+
+- Frontend: Vanilla HTML, CSS, JavaScript — no frameworks, no build tools
+- Storage: localStorage (state, API settings, history, templates)
+- Rendering: Vanilla DOM manipulation + Canvas (via generated games)
+- LLM APIs: 6 provider adapters (OpenAI-compatible + Anthropic native format)
+- Generation: Prompt assembly → LLM call → Code extraction → iframe rendering
+- Deployment: Static site on Netlify
+- Testing: Jest (prompt builder tests)
+- Launcher: Pinokio support via pinokio.json
+
+---
+
+## Pricing
+
+- Free — no cost, no signup, no account required
+- Users supply their own LLM API keys (BYOK model)
+- Local providers (Ollama, LM Studio) are completely free to use
+- No hidden costs, no premium tier, no token system
+
+---
+
+## Links
+
+- Main App: https://aigamecreatorlearn.netlify.app/
+- How to Use: https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md
+- GitHub: https://github.com/alvescrafter/game-creator-learn
+- Sister Site (General Games): https://aigamecreator.netlify.app/
+- Sister Site (Home): https://gamecreatorai.netlify.app/landing/
+- Sitemap (XML): https://aigamecreatorlearn.netlify.app/sitemap.xml
+- Sitemap (Markdown): https://aigamecreatorlearn.netlify.app/sitemap.md
+- AI Permissions: https://aigamecreatorlearn.netlify.app/ai.txt
+- AI Metadata: https://aigamecreatorlearn.netlify.app/ai.json
+- Brand Guidelines: https://aigamecreatorlearn.netlify.app/brand.txt
+- Agent Instructions: https://aigamecreatorlearn.netlify.app/AGENTS.md
+- Pinokio Info: https://aigamecreatorlearn.netlify.app/PINOKIO.md

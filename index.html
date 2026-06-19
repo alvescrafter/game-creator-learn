@@ -33,6 +33,19 @@
   <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
   <link rel="apple-touch-icon" href="favicon.svg">
 
+  <!-- AI Agent Discovery: Alternate representations -->
+  <link rel="alternate" type="text/plain" href="https://aigamecreatorlearn.netlify.app/llms.txt" title="AI Site Summary (llms.txt)">
+  <link rel="alternate" type="text/plain" href="https://aigamecreatorlearn.netlify.app/llms-full.txt" title="Full Content for AI Ingestion (llms-full.txt)">
+  <link rel="alternate" type="text/markdown" href="https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md" title="How to Use Guide (Markdown)">
+  <link rel="alternate" type="application/json" href="https://aigamecreatorlearn.netlify.app/ai.json" title="Structured AI Metadata (ai.json)">
+  <link rel="alternate" type="text/plain" href="https://aigamecreatorlearn.netlify.app/ai.txt" title="AI Permissions (ai.txt)">
+  <link rel="alternate" type="text/plain" href="https://aigamecreatorlearn.netlify.app/brand.txt" title="Brand Guidelines (brand.txt)">
+  <link rel="alternate" type="text/markdown" href="https://aigamecreatorlearn.netlify.app/AGENTS.md" title="Agent Instructions (AGENTS.md)">
+  <link rel="alternate" type="text/markdown" href="https://aigamecreatorlearn.netlify.app/sitemap.md" title="Markdown Sitemap">
+  <link rel="sitemap" type="application/xml" href="https://aigamecreatorlearn.netlify.app/sitemap.xml">
+  <link rel="service" type="application/json" href="https://aigamecreatorlearn.netlify.app/.well-known/ai-plugin.json" title="AI Plugin Manifest">
+  <link rel="service" type="application/json" href="https://aigamecreatorlearn.netlify.app/.well-known/agents.json" title="A2A Agent Discovery">
+
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -55,7 +68,12 @@
         "author": {
           "@type": "Organization",
           "name": "Game Creator Learn",
-          "url": "https://aigamecreatorlearn.netlify.app/"
+          "url": "https://aigamecreatorlearn.netlify.app/",
+          "sameAs": [
+            "https://github.com/alvescrafter/game-creator-learn",
+            "https://aigamecreator.netlify.app/",
+            "https://gamecreatorai.netlify.app/landing/"
+          ]
         }
       },
       {
@@ -85,6 +103,128 @@
         "publisher": {
           "@id": "https://aigamecreatorlearn.netlify.app/#webapp"
         }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://aigamecreatorlearn.netlify.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Game Creator Learn?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Game Creator Learn is a free, browser-based AI tool that generates complete playable educational HTML5 games. You configure learning parameters like subject, topic, difficulty, age range, and game type, and the app assembles a prompt sent to your chosen AI provider to generate a standalone HTML game."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does Game Creator Learn work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You configure educational parameters through a sidebar with 6 modules (Educational Topic, Difficulty & Age, Core Identity, Mechanics, Visuals, Audio). The app assembles a detailed prompt from your configuration and sends it to your configured LLM provider. The LLM generates a complete HTML5 game that renders live in a sandbox. You can then refine the game through multi-turn conversation with the LLM."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What subjects and game types are supported?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Game Creator Learn supports 12 subjects (Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other) and 12 game types (Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game). It also offers 15+ game mechanics, 10 art styles, and 6 age ranges from 5-8 years to Masters/Postgraduate."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Game Creator Learn free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Game Creator Learn is completely free with no signup or account required. You bring your own LLM API keys (BYOK model). Local providers like Ollama and LM Studio are completely free to use with no API costs."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What AI providers can I use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Game Creator Learn supports 6 LLM providers: OpenAI (GPT-4o, GPT-4, etc.), Google Gemini (gemini-2.0-flash, etc.), Anthropic Claude (Claude Sonnet, etc.), Ollama (local, free), LM Studio (local, free), and Custom OpenAI-compatible APIs. All providers are configured client-side — your API keys are stored in your browser and never sent to any server."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need an API key to use Game Creator Learn?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You need an API key for cloud providers (OpenAI, Google Gemini, Anthropic Claude). For local providers like Ollama and LM Studio, no API key is needed — they run on your machine. You can also use any custom OpenAI-compatible API endpoint."
+            }
+          }
+        ]
+      },
+      {
+        "@type": "HowTo",
+        "@id": "https://aigamecreatorlearn.netlify.app/#howto",
+        "name": "How to Generate an Educational Game with Game Creator Learn",
+        "description": "Create engaging educational games with AI by configuring learning parameters and generating a playable HTML5 game.",
+        "totalTime": "PT5M",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Connect Your AI Provider",
+            "text": "Click the Settings button (or press Ctrl+,), choose a provider (OpenAI, Gemini, Claude, Ollama, LM Studio, or Custom), enter your API key if needed, select a model, and click Save."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Choose Your Subject and Topic",
+            "text": "In the Educational Topic module, select a subject from 12 options, enter a specific topic (e.g., 'Fractions'), and write a learning objective (e.g., 'Understand how to add fractions with different denominators')."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Configure Game Parameters",
+            "text": "Set the age range, difficulty level, game type, mechanics, art style, color palette, and audio preferences using the 6 sidebar modules. Toggle off any modules you don't need."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Generate Your Educational Game",
+            "text": "Click the Generate Educational Game button (or press Ctrl+Enter). The app assembles your configuration into a prompt and sends it to your AI provider. The generated game appears in the Game Sandbox tab."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 5,
+            "name": "Refine Your Game",
+            "text": "Use the Refine bar at the bottom of the sandbox to request changes (e.g., 'Add a quiz at the end of each level' or 'Make the questions easier for younger students'). The AI will regenerate the game with your changes applied."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 6,
+            "name": "Download Your Game",
+            "text": "Click the Download button to save the generated game as a standalone HTML file. The file contains all CSS and JavaScript — just open it in any browser to play."
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://aigamecreatorlearn.netlify.app/#breadcrumbs",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://gamecreatorai.netlify.app/landing/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Educational Games",
+            "item": "https://aigamecreatorlearn.netlify.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Game Creator Learn"
+          }
+        ]
       }
     ]
   }

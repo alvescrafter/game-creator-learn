@@ -1,0 +1,167 @@
+{
+  "spec": "ai.json/v1",
+  "last_updated": "2026-06-19",
+  "site": {
+    "name": "Game Creator Learn",
+    "url": "https://aigamecreatorlearn.netlify.app/",
+    "description": "Free, browser-based AI tool that generates complete playable educational HTML5 games from user-configured learning parameters.",
+    "type": "web-application",
+    "category": "Educational Technology",
+    "language": "en-GB",
+    "currency": "GBP",
+    "pricing": {
+      "model": "free",
+      "price": 0,
+      "currency": "GBP",
+      "notes": "Users supply their own LLM API keys (BYOK). Local providers (Ollama, LM Studio) are free."
+    },
+    "author": {
+      "name": "alvescrafter",
+      "github": "https://github.com/alvescrafter",
+      "repository": "https://github.com/alvescrafter/game-creator-learn"
+    },
+    "deployment": {
+      "platform": "Netlify",
+      "type": "static-site",
+      "backend": false,
+      "note": "All LLM API calls happen client-side. No server-side processing."
+    }
+  },
+  "permissions": {
+    "training": true,
+    "indexing": true,
+    "citation": true,
+    "ai_input": true,
+    "search": true,
+    "summarization": true
+  },
+  "crawlers": {
+    "allow_all": true,
+    "explicitly_allowed": [
+      "GPTBot",
+      "OAI-SearchBot",
+      "ClaudeBot",
+      "Claude-SearchBot",
+      "PerplexityBot",
+      "Google-Extended",
+      "CCBot",
+      "Bytespider",
+      "anthropic-ai"
+    ],
+    "blocked": []
+  },
+  "content_map": {
+    "main_app": {
+      "url": "https://aigamecreatorlearn.netlify.app/",
+      "type": "interactive-web-app",
+      "description": "Configure educational game parameters and generate playable HTML5 games with AI"
+    },
+    "how_to_use": {
+      "url": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md",
+      "type": "markdown-documentation",
+      "description": "Complete usage guide with module descriptions, keyboard shortcuts, best practices, and examples"
+    },
+    "pinokio_guide": {
+      "url": "https://aigamecreatorlearn.netlify.app/PINOKIO.md",
+      "type": "markdown-documentation",
+      "description": "One-click install via Pinokio launcher"
+    },
+    "source_code": {
+      "url": "https://github.com/alvescrafter/game-creator-learn",
+      "type": "github-repository",
+      "description": "Open source repository with all project files"
+    }
+  },
+  "capabilities": {
+    "input": {
+      "subjects": ["Maths", "English", "Physics", "Biology", "Chemistry", "History", "Geography", "Computer Science", "Art", "Music", "Foreign Languages", "Other"],
+      "game_types": ["Quiz/Trivia", "Platformer", "Puzzle", "RPG", "Simulation", "Adventure", "Strategy", "Racing", "Idle/Incremental", "Visual Novel", "Escape Room", "Card Game"],
+      "mechanics": ["Quiz System", "Drag & Drop", "Matching", "Fill-in-the-Blank", "Multiple Choice", "Scoring System", "Progress Tracking", "Hint System", "Leveling Up", "Health Bar", "Timer", "Collectibles", "Dialogue System", "Physics", "Procedural Generation"],
+      "age_ranges": ["5-8 years (KS1/Early)", "9-11 years (KS2/Primary)", "12-15 years (KS3/Lower Secondary)", "16-18 years (KS4-5/GCSE-A Level)", "University", "Masters/Postgraduate"],
+      "difficulty_levels": ["Beginner", "Intermediate", "Advanced", "Expert"],
+      "art_styles": ["Pixel Art", "Minimalist Vector", "ASCII", "Low-Poly 3D", "Hand-drawn", "Flat Design", "Retro CRT", "Neon Glow", "Cartoon", "Whiteboard/Chalkboard"],
+      "music_moods": ["Lo-fi", "Orchestral", "8-bit/Chiptune", "Cheerful", "Ambient", "No Music"]
+    },
+    "llm_providers": [
+      {
+        "name": "OpenAI",
+        "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"],
+        "default_model": "gpt-4o",
+        "requires_api_key": true,
+        "api_format": "openai-native"
+      },
+      {
+        "name": "Google Gemini",
+        "models": ["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro", "gemini-1.5-flash"],
+        "default_model": "gemini-2.0-flash",
+        "requires_api_key": true,
+        "api_format": "openai-compatible"
+      },
+      {
+        "name": "Anthropic Claude",
+        "models": ["claude-sonnet-4-20250514", "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
+        "default_model": "claude-sonnet-4-20250514",
+        "requires_api_key": true,
+        "api_format": "anthropic-native"
+      },
+      {
+        "name": "Ollama",
+        "models": ["llama3.2", "llama3.1", "llama3", "mistral", "codellama", "gemma2", "phi3", "qwen2", "deepseek-coder-v2", "mixtral"],
+        "default_model": "llama3.2",
+        "requires_api_key": false,
+        "api_format": "openai-compatible",
+        "endpoint": "http://localhost:11434"
+      },
+      {
+        "name": "LM Studio",
+        "models": "(auto-detected from server)",
+        "default_model": "(auto-detected)",
+        "requires_api_key": false,
+        "api_format": "openai-compatible",
+        "endpoint": "http://localhost:1234"
+      },
+      {
+        "name": "Custom API",
+        "models": "(user-specified)",
+        "default_model": "(user-specified)",
+        "requires_api_key": "depends",
+        "api_format": "openai-compatible",
+        "endpoint": "(user-specified)"
+      }
+    ],
+    "output": {
+      "format": "HTML5 single file",
+      "contains": ["HTML", "CSS", "JavaScript", "Canvas rendering"],
+      "external_dependencies": false,
+      "game_structure": ["Start Menu", "Game Screen with HUD", "Pause Menu", "Game Over/Level Complete Screen", "Standardised Buttons", "Keyboard Controls", "Responsive Design"]
+    },
+    "features": [
+      "Prompt preview tab",
+      "Game sandbox (live iframe rendering)",
+      "Refine (multi-turn LLM conversation)",
+      "History (50 games in localStorage)",
+      "Templates (save/reuse configurations)",
+      "Download (standalone HTML files)",
+      "Streaming responses",
+      "Connection testing",
+      "Model auto-detection",
+      "Keyboard shortcuts"
+    ]
+  },
+  "discovery_files": {
+    "llms_txt": "https://aigamecreatorlearn.netlify.app/llms.txt",
+    "llms_full_txt": "https://aigamecreatorlearn.netlify.app/llms-full.txt",
+    "ai_txt": "https://aigamecreatorlearn.netlify.app/ai.txt",
+    "ai_json": "https://aigamecreatorlearn.netlify.app/ai.json",
+    "brand_txt": "https://aigamecreatorlearn.netlify.app/brand.txt",
+    "agents_md": "https://aigamecreatorlearn.netlify.app/AGENTS.md",
+    "sitemap_xml": "https://aigamecreatorlearn.netlify.app/sitemap.xml",
+    "sitemap_md": "https://aigamecreatorlearn.netlify.app/sitemap.md",
+    "ai_plugin_json": "https://aigamecreatorlearn.netlify.app/.well-known/ai-plugin.json",
+    "agent_skills_index": "https://aigamecreatorlearn.netlify.app/.well-known/agent-skills/index.json",
+    "agents_json": "https://aigamecreatorlearn.netlify.app/.well-known/agents.json"
+  },
+  "contact": {
+    "github_issues": "https://github.com/alvescrafter/game-creator-learn/issues"
+  }
+}

@@ -1,11 +1,51 @@
 # Game Creator Learn — https://aigamecreatorlearn.netlify.app/
-# Allow all search engines to crawl the site
+# Allow all search engines and AI agents to crawl the site
 
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://aigamecreatorlearn.netlify.app/sitemap.xml
+# ── Explicitly allow AI crawlers ──
 
-# Disallow admin/API routes (no SEO value)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# ── Disallow admin/API routes (no SEO value, placeholder for future) ──
+
 Disallow: /api/
+
+# ── Sitemap ──
+
+Sitemap: https://aigamecreatorlearn.netlify.app/sitemap.xml

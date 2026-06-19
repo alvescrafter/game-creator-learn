@@ -1,0 +1,43 @@
+# ai.txt — AI permissions and content declaration for Game Creator Learn
+# URL: https://aigamecreatorlearn.netlify.app/ai.txt
+# Last updated: 2026-06-19
+
+## Permissions
+
+Training: yes
+Indexing: yes
+Citation: yes
+AI Input: yes
+Search: yes
+Summarization: yes
+
+All AI agents, crawlers, and language models are permitted to:
+- Crawl and index all public content on this site
+- Use content for training language models
+- Cite this site as a source in AI-generated responses
+- Use content as input/context for AI-generated outputs
+- Summarize and paraphrase content
+- Follow links to discover related resources
+
+## Content Summary
+
+Site name: Game Creator Learn
+Site type: Web application (educational game generator)
+Primary language: English (British)
+Content category: Educational technology, AI tools, game-based learning
+Target audience: Teachers, educators, parents, students, self-learners
+Update frequency: Weekly (when features are added or content changes)
+
+## Key Content
+- Main application: Client-side AI educational game generator
+- How-to guide: Comprehensive usage instructions (HOW_TO_USE.md)
+- Source code: Open source on GitHub (github.com/alvescrafter/game-creator-learn)
+- AI metadata: Structured machine-readable metadata available at ai.json
+
+## Contact
+GitHub issues: https://github.com/alvescrafter/game-creator-learn/issues
+
+## Exclusions
+- /api/ — no API endpoints exist (placeholder for future)
+- No user data is collected or stored server-side
+- All user data (API keys, history, templates) is stored locally in the browser (localStorage)
