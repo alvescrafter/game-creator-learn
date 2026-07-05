@@ -1,6 +1,6 @@
 {
   "spec": "ai.json/v1",
-  "last_updated": "2026-06-19",
+  "last_updated": "2026-07-05",
   "site": {
     "name": "Game Creator Learn",
     "url": "https://aigamecreatorlearn.netlify.app/",
@@ -75,11 +75,11 @@
   "capabilities": {
     "input": {
       "subjects": ["Maths", "English", "Physics", "Biology", "Chemistry", "History", "Geography", "Computer Science", "Art", "Music", "Foreign Languages", "Other"],
-      "game_types": ["Quiz/Trivia", "Platformer", "Puzzle", "RPG", "Simulation", "Adventure", "Strategy", "Racing", "Idle/Incremental", "Visual Novel", "Escape Room", "Card Game"],
-      "mechanics": ["Quiz System", "Drag & Drop", "Matching", "Fill-in-the-Blank", "Multiple Choice", "Scoring System", "Progress Tracking", "Hint System", "Leveling Up", "Health Bar", "Timer", "Collectibles", "Dialogue System", "Physics", "Procedural Generation"],
+      "game_types": ["Quiz/Trivia", "Practice Challenge", "Puzzle", "Matching Game", "Memory Game", "Sorting Game", "Typing Game", "Word Search", "Escape Room", "Adventure Quiz", "Board Game", "Platformer Quiz", "Racing Quiz", "Card Game"],
+      "mechanics": ["Multiple Choice", "Type Answer", "Fill-in-the-Blank", "Matching", "Sorting & Categorisation", "Sequencing", "Drag & Drop", "Timed Challenge", "Hint System", "Level Progression", "Lives / Attempts", "Collectibles", "Dialogue Prompts", "Spaced Review", "Achievements"],
       "age_ranges": ["5-8 years (KS1/Early)", "9-11 years (KS2/Primary)", "12-15 years (KS3/Lower Secondary)", "16-18 years (KS4-5/GCSE-A Level)", "University", "Masters/Postgraduate"],
       "difficulty_levels": ["Beginner", "Intermediate", "Advanced", "Expert"],
-      "art_styles": ["Pixel Art", "Minimalist Vector", "ASCII", "Low-Poly 3D", "Hand-drawn", "Flat Design", "Retro CRT", "Neon Glow", "Cartoon", "Whiteboard/Chalkboard"],
+      "art_styles": ["Pixel Art", "Minimalist Vector", "ASCII", "Simple 2D Shapes", "Hand-drawn", "Flat Design", "Retro CRT", "Neon Glow", "Cartoon", "Whiteboard/Chalkboard"],
       "music_moods": ["Lo-fi", "Orchestral", "8-bit/Chiptune", "Cheerful", "Ambient", "No Music"]
     },
     "llm_providers": [

@@ -1,6 +1,6 @@
 # ai.txt — AI permissions and content declaration for Game Creator Learn
 # URL: https://aigamecreatorlearn.netlify.app/ai.txt
-# Last updated: 2026-06-19
+# Last updated: 2026-07-05
 
 ## Permissions
 

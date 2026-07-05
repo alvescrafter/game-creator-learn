@@ -11,11 +11,11 @@
 
 ## Features
 - 12 subjects: Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other
-- 12 game types: Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game
-- 15+ game mechanics: Quiz System, Drag & Drop, Matching, Fill-in-the-Blank, Multiple Choice, Scoring System, Progress Tracking, Hint System, Leveling Up, Health Bar, Timer, Collectibles, Dialogue System, Physics, Procedural Generation
+- Reliable educational game types: Quiz/Trivia, Practice Challenge, Puzzle, Matching Game, Memory Game, Sorting Game, Typing Game, Word Search, Escape Room, Adventure Quiz, Board Game, Platformer Quiz, Racing Quiz, Card Game
+- Focused learning mechanics: Multiple Choice, Type Answer, Fill-in-the-Blank, Matching, Sorting & Categorisation, Sequencing, Drag & Drop, Timed Challenge, Hint System, Level Progression, Lives / Attempts, Collectibles, Dialogue Prompts, Spaced Review, Achievements
 - 6 age ranges: 5–8 years (KS1), 9–11 years (KS2), 12–15 years (KS3), 16–18 years (KS4-5/GCSE–A Level), University, Masters/Postgraduate
 - 6 LLM providers: OpenAI, Google Gemini, Anthropic Claude, Ollama (local), LM Studio (local), Custom OpenAI-compatible API
-- 10 art styles: Pixel Art, Minimalist Vector, ASCII, Low-Poly 3D, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard
+- 10 art styles: Pixel Art, Minimalist Vector, ASCII, Simple 2D Shapes, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard
 - 6 music moods: Lo-fi, Orchestral, 8-bit/Chiptune, Cheerful, Ambient, No Music
 - Prompt preview tab: inspect the assembled prompt before/after generation
 - Game sandbox: live iframe rendering of generated games

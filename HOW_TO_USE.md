@@ -75,21 +75,21 @@ After generating, use the **Refine bar** at the bottom of the sandbox:
 ### 🎯 Core Identity
 | Field | Description |
 |-------|-------------|
-| **Game Type** | Select from 12 game types: Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game |
+| **Game Type** | Select from reliable educational game types: Quiz/Trivia, Practice Challenge, Puzzle, Matching Game, Memory Game, Sorting Game, Typing Game, Word Search, Escape Room, Adventure Quiz, Board Game, Platformer Quiz, Racing Quiz, Card Game |
 | **Setting / Theme** | Free text — describe your game world (e.g. "Space Explorer Maths", "Chemistry Lab Adventure") |
 | **Tone** | Slider from 🌑 Serious/Academic (0) to Playful/Fun (100) |
 
 ### ⚙️ Mechanics & Gameplay
 | Field | Description |
 |-------|-------------|
-| **Mechanics** | Click-to-toggle tags: Quiz System, Drag & Drop, Matching, Fill-in-the-Blank, Multiple Choice, Scoring System, Progress Tracking, Hint System, Leveling Up, Health Bar, Timer, Collectibles, Dialogue System, Physics, Procedural Generation |
+| **Mechanics** | Click-to-toggle tags: Multiple Choice, Type Answer, Fill-in-the-Blank, Matching, Sorting & Categorisation, Sequencing, Drag & Drop, Timed Challenge, Hint System, Level Progression, Lives / Attempts, Collectibles, Dialogue Prompts, Spaced Review, Achievements |
 | **Specific Rules** | Free text — custom rules (e.g. "Player earns stars for correct answers, loses a life for wrong ones") |
-| **Difficulty Curve** | Linear, Exponential, Adaptive (adjusts to learner), or S-Curve |
+| **Difficulty Curve** | Gentle Ramp, Steady Progression, Adaptive Review, or Challenge Rounds |
 
 ### 🎨 Visual & Aesthetic
 | Field | Description |
 |-------|-------------|
-| **Art Style** | Pixel Art, Minimalist Vector, ASCII, Low-Poly 3D, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard |
+| **Art Style** | Pixel Art, Minimalist Vector, ASCII, Simple 2D Shapes, Hand-drawn, Flat Design, Retro CRT, Neon Glow, Cartoon, Whiteboard/Chalkboard |
 | **Color Palette** | Pick Primary, Secondary, and Background colors |
 | **Visual Effects** | Free text — describe VFX (e.g. "Confetti on correct answer", "Star particles on level up") |
 
@@ -118,11 +118,11 @@ After generating, use the **Refine bar** at the bottom of the sandbox:
 
 ### Choosing the Right Game Type
 - **Quiz/Trivia** — Best for knowledge recall and fact-based learning (vocabulary, dates, definitions)
+- **Practice Challenge** — Best for repeated skill practice with fast feedback and mastery goals
 - **Puzzle** — Great for problem-solving and logical thinking (maths, coding concepts)
-- **Platformer** — Engaging for younger learners; combine movement with subject challenges
-- **Simulation** — Ideal for science experiments, historical scenarios, and real-world applications
-- **Escape Room** — Excellent for collaborative problem-solving and critical thinking
-- **Card Game** — Good for matching, categorisation, and memory-based learning
+- **Matching / Memory / Sorting** — Reliable for vocabulary, categorisation, cause/effect, and recall
+- **Escape Room** — Excellent for multi-step problem-solving and critical thinking
+- **Platformer Quiz / Racing Quiz** — Adds simple action while keeping questions as the learning gate
 
 ### Setting Age-Appropriate Content
 - **5–8 years**: Simple vocabulary, large text, bright colours, short activities, lots of positive reinforcement
@@ -151,7 +151,7 @@ Good learning objectives are specific and measurable:
 - **Age Range**: 9–11 years (KS2/Primary)
 - **Difficulty**: Beginner
 - **Game Type**: Quiz
-- **Mechanics**: Quiz System, Scoring System, Timer, Progress Tracking
+- **Mechanics**: Multiple Choice, Timed Challenge, Hint System, Level Progression
 
 ### Biology Escape Room for 16-18 Year Olds
 - **Subject**: Biology
@@ -160,16 +160,16 @@ Good learning objectives are specific and measurable:
 - **Age Range**: 16–18 years (KS4-5/GCSE–A Level)
 - **Difficulty**: Advanced
 - **Game Type**: Escape Room
-- **Mechanics**: Hint System, Dialogue System, Progress Tracking, Scoring System
+- **Mechanics**: Hint System, Dialogue Prompts, Sequencing, Spaced Review
 
-### Physics Platformer for 12-15 Year Olds
+### Physics Platformer Quiz for 12-15 Year Olds
 - **Subject**: Physics
 - **Topic**: Forces and Motion
 - **Learning Objective**: "Apply the relationship between force, mass, and acceleration"
 - **Age Range**: 12–15 years (KS3/Lower Secondary)
 - **Difficulty**: Intermediate
-- **Game Type**: Platformer
-- **Mechanics**: Physics, Collectibles, Leveling Up, Progress Tracking
+- **Game Type**: Platformer Quiz
+- **Mechanics**: Multiple Choice, Collectibles, Level Progression, Hint System
 
 ---
 

@@ -55,8 +55,85 @@
   const TECH_DEFAULTS = {
     framework: 'Vanilla JS/Canvas',
     singleFile: true,
-    assetHandling: 'Use placeholder colored rectangles and simple shapes',
+    assetHandling: 'Use CSS shapes, Canvas drawing, emoji, Unicode characters, and generated Web Audio only',
     maxTokens: 50000,
+  };
+
+  const GAME_TYPE_GUIDANCE = {
+    'Quiz': 'Use a question-first loop with varied question formats, instant explanations, and short rounds.',
+    'Practice Challenge': 'Use repeated skill practice with quick feedback, streaks, and a short mastery goal.',
+    'Puzzle': 'Use the learning objective as the puzzle logic; each move should demonstrate the concept.',
+    'Matching Game': 'Use pairs such as terms/definitions, causes/effects, formulas/examples, or images described with text.',
+    'Memory Game': 'Use flip-card recall with small sets, clear matching rules, and short rounds.',
+    'Sorting Game': 'Use drag, click, or keyboard sorting into labelled categories with feedback after each placement.',
+    'Typing Game': 'Use short typed answers, spelling, vocabulary, formula entry, or code snippets with forgiving validation.',
+    'Word Search': 'Use a generated word grid plus clue prompts; keep it keyboard and touch friendly.',
+    'Escape Room': 'Use 3-5 educational locks/puzzles, each solved by applying the topic.',
+    'Adventure Quiz': 'Use a simple story map where progress is unlocked by correct answers and hints.',
+    'Board Game': 'Use a turn-based board with question spaces, simple dice/spinner logic, and visible progress.',
+    'Platformer Quiz': 'Use very simple movement; gate progress with questions instead of complex physics.',
+    'Racing Quiz': 'Use lane/tap or answer-speed racing; correctness should matter more than reflexes.',
+    'Card Game': 'Use educational cards for matching, categorising, sequencing, or choosing evidence.',
+    // Legacy saved values from older versions.
+    'Platformer': 'Convert this to Platformer Quiz: simple movement with questions as gates; avoid complex physics.',
+    'RPG': 'Convert this to Adventure Quiz: lightweight story, choices, and educational challenges; avoid inventory-heavy systems.',
+    'Simulation': 'Use a simplified interactive model with 3-5 variables and clear learning feedback.',
+    'Adventure': 'Convert this to Adventure Quiz with a small map and educational gates.',
+    'Strategy': 'Use a simple turn-based decision game where each choice requires applying the topic.',
+    'Racing': 'Convert this to Racing Quiz; correctness should drive progress more than reflex timing.',
+    'Idle': 'Convert this to Practice Challenge; avoid passive waiting loops.',
+    'Visual Novel': 'Use Dialogue Prompts with embedded questions and decisions.',
+    'Clicker': 'Convert this to Practice Challenge; each tap/click must involve a learning decision.',
+  };
+
+  const MECHANIC_GUIDANCE = {
+    'Multiple Choice': 'Include 3-4 plausible options, explain why the chosen answer is right or wrong.',
+    'Type Answer': 'Accept common casing/spacing variants and give hints before marking a learner stuck.',
+    'Fill-in-the-Blank': 'Use short blanks and validate against a small list of acceptable answers.',
+    'Matching': 'Provide immediate feedback after each pair and keep sets small enough for the age range.',
+    'Sorting & Categorisation': 'Use labelled bins/categories and explain any misplaced item.',
+    'Sequencing': 'Ask learners to order steps, events, numbers, code, or processes with feedback.',
+    'Drag & Drop': 'Also support click/tap selection as a fallback for touch and keyboard users.',
+    'Timed Challenge': 'Keep timers optional or generous; never make speed the only way to succeed.',
+    'Hint System': 'Offer tiered hints before revealing the answer.',
+    'Level Progression': 'Use 3 short levels with steadily deeper questions.',
+    'Lives / Attempts': 'Use attempts gently; do not punish learning mistakes harshly.',
+    'Collectibles': 'Tie collectibles to correct educational actions, not random movement.',
+    'Dialogue Prompts': 'Use dialogue to ask questions or present choices, not just story text.',
+    'Spaced Review': 'Revisit missed items later in the same session.',
+    'Achievements': 'Award badges for mastery, persistence, and improvement.',
+    // Legacy saved values from older versions.
+    'Quiz System': 'Use a question-first loop with instant feedback and explanations.',
+    'Scoring System': 'Include scoring as part of the mandatory HUD; keep it simple and transparent.',
+    'Progress Tracking': 'Include progress as part of the mandatory HUD and final learning summary.',
+    'Leveling Up': 'Use Level Progression with short, clearly named levels.',
+    'Health Bar': 'Use Lives / Attempts gently; avoid harsh failure states.',
+    'Timer': 'Use Timed Challenge with a generous or optional timer.',
+    'Dialogue System': 'Use Dialogue Prompts with embedded learning choices.',
+    'Physics': 'Keep movement and collisions very simple; prioritise educational questions over physics accuracy.',
+    'Procedural Generation': 'Use a predefined question bank with light random ordering; do not generate unbounded content.',
+    'Pause Menu': 'Pause Menu is already mandatory; do not add duplicate pause systems.',
+    'HUD Display': 'HUD is already mandatory; keep it clear and compact.',
+    'Start Screen': 'Start Menu is already mandatory; keep it simple.',
+    'Game Over Screen': 'Complete screen is already mandatory; include learning summary.',
+    'Lives System': 'Use Lives / Attempts gently; avoid harsh failure states.',
+  };
+
+  const DIFFICULTY_CURVE_GUIDANCE = {
+    'Gentle Ramp': 'Start with a guided example, then increase one concept at a time.',
+    'Steady Progression': 'Increase complexity each round while keeping the interaction pattern consistent.',
+    'Adaptive Review': 'If the learner misses an item, give a hint and revisit a similar item later.',
+    'Challenge Rounds': 'Add short challenge rounds after practice, with hints still available.',
+    // Legacy saved values from older versions.
+    'Linear': 'Use Steady Progression.',
+    'Exponential': 'Use Challenge Rounds without sudden difficulty spikes.',
+    'Adaptive': 'Use Adaptive Review.',
+    'S-Curve': 'Use Gentle Ramp, Steady Progression, then a short challenge round.',
+  };
+
+  const ART_STYLE_GUIDANCE = {
+    'Low-Poly 3D': 'Approximate as Simple 2D Shapes with flat-shaded geometric styling; do not require WebGL.',
+    'Simple 2D Shapes': 'Use readable CSS and Canvas shapes with strong contrast and clear labels.',
   };
 
   const DEFAULT_API = {
@@ -147,6 +224,24 @@
     return JSON.parse(JSON.stringify(obj));
   }
 
+  function mergeStateWithDefaults(savedState) {
+    const merged = deepClone(DEFAULT_STATE);
+    if (!savedState || typeof savedState !== 'object') return merged;
+
+    Object.keys(DEFAULT_STATE).forEach(section => {
+      const savedSection = savedState[section];
+      if (savedSection && typeof savedSection === 'object' && !Array.isArray(savedSection)) {
+        merged[section] = { ...merged[section], ...savedSection };
+      }
+    });
+
+    if (!Array.isArray(merged.mechanics.tags)) {
+      merged.mechanics.tags = [];
+    }
+
+    return merged;
+  }
+
   function uid() {
     try { return crypto.randomUUID(); }
     catch { return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -188,7 +283,7 @@
       const raw = localStorage.getItem(KEYS.STATE);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.state) state = { ...deepClone(DEFAULT_STATE), ...parsed.state };
+        if (parsed.state) state = mergeStateWithDefaults(parsed.state);
         if (parsed.moduleEnabled) moduleEnabled = { ...deepClone(DEFAULT_MODULE_ENABLED), ...parsed.moduleEnabled };
       }
     } catch (e) {
@@ -294,6 +389,14 @@ CORE PRINCIPLES:
 - All educational content must be factually accurate and appropriate for the specified age range
 - IMPORTANT: Do NOT exceed 50,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.
 
+DESIGN RESOLUTION RULES:
+- Treat the selected Game Type as the primary loop and the selected Mechanics as supporting interactions.
+- If options compete with each other, choose the simpler interaction that best teaches the learning objective.
+- Prefer deterministic, testable rules over complex physics, procedural systems, or large simulations.
+- Keep the first playable version small: 3-5 rounds or levels, a compact question/content bank, clear win and retry states.
+- Every score, collectible, timer, level, card, movement challenge, or puzzle must directly support the educational goal.
+- If a user leaves fields blank, make sensible age-appropriate defaults rather than asking follow-up questions.
+
 MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screens and navigation:
 
 1. START MENU SCREEN:
@@ -353,7 +456,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // Always include tech stack context
     systemPrompt += `\n\nYou are proficient in ${TECH_DEFAULTS.framework}.`;
     systemPrompt += `\n\nUse ${TECH_DEFAULTS.framework} for rendering and game logic.`;
-    systemPrompt += `\n\nAsset Handling: ${TECH_DEFAULTS.assetHandling}. Do NOT use any external images, sounds, or CDN links. All visuals must be created with CSS, Canvas API drawing, emoji, or Unicode characters.`;
+    systemPrompt += `\n\nAsset Handling: ${TECH_DEFAULTS.assetHandling}. Do NOT use any external images, sounds, or CDN links. All visuals must be created with CSS, Canvas API drawing, emoji, or Unicode characters. If audio is included, use the Web Audio API only, start it after a user action, and include a mute toggle.`;
 
     // ── User Prompt: Educational Game Specification ──
     let userPrompt = '';
@@ -380,6 +483,9 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     if (enabled.coreIdentity) {
       userPrompt += '**Game Concept:**\n';
       if (state.coreIdentity.genre) userPrompt += `- Game Type: ${state.coreIdentity.genre}\n`;
+      if (state.coreIdentity.genre && GAME_TYPE_GUIDANCE[state.coreIdentity.genre]) {
+        userPrompt += `- Game Type Guidance: ${GAME_TYPE_GUIDANCE[state.coreIdentity.genre]}\n`;
+      }
       if (state.coreIdentity.theme) userPrompt += `- Setting/Theme: ${state.coreIdentity.theme}\n`;
       const toneLabel = state.coreIdentity.tone <= 20 ? 'Very Serious/Academic'
         : state.coreIdentity.tone <= 40 ? 'Serious'
@@ -394,12 +500,21 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
       userPrompt += '**Gameplay Mechanics:**\n';
       if (state.mechanics.tags.length > 0) {
         userPrompt += `- Mechanics: ${state.mechanics.tags.join(', ')}\n`;
+        const mechanicGuidance = state.mechanics.tags
+          .map(tag => MECHANIC_GUIDANCE[tag] ? `${tag}: ${MECHANIC_GUIDANCE[tag]}` : '')
+          .filter(Boolean);
+        if (mechanicGuidance.length > 0) {
+          userPrompt += `- Mechanic Guidance:\n  - ${mechanicGuidance.join('\n  - ')}\n`;
+        }
       }
       if (state.mechanics.rules) {
         userPrompt += `- Specific Rules: ${state.mechanics.rules}\n`;
       }
       if (state.mechanics.difficulty) {
         userPrompt += `- Difficulty Curve: ${state.mechanics.difficulty}\n`;
+        if (DIFFICULTY_CURVE_GUIDANCE[state.mechanics.difficulty]) {
+          userPrompt += `- Difficulty Curve Guidance: ${DIFFICULTY_CURVE_GUIDANCE[state.mechanics.difficulty]}\n`;
+        }
       }
       userPrompt += '\n';
     }
@@ -408,6 +523,9 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     if (enabled.visuals) {
       userPrompt += '**Visual Requirements:**\n';
       if (state.visuals.artStyle) userPrompt += `- Art Style: ${state.visuals.artStyle}\n`;
+      if (state.visuals.artStyle && ART_STYLE_GUIDANCE[state.visuals.artStyle]) {
+        userPrompt += `- Art Style Guidance: ${ART_STYLE_GUIDANCE[state.visuals.artStyle]}\n`;
+      }
       userPrompt += `- Color Palette: Primary ${state.visuals.colorPrimary}, Secondary ${state.visuals.colorSecondary}, Background ${state.visuals.colorBg}\n`;
       if (state.visuals.vfx) userPrompt += `- Visual Effects: ${state.visuals.vfx}\n`;
       userPrompt += '\n';
@@ -423,12 +541,27 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // ── Audio ──
     if (enabled.audio) {
       userPrompt += '**Audio & Soundscape:**\n';
-      if (state.audio.musicMood) userPrompt += `- Music Mood: ${state.audio.musicMood}\n`;
+      if (state.audio.musicMood) {
+        userPrompt += `- Music Mood: ${state.audio.musicMood}\n`;
+        if (state.audio.musicMood === 'None') {
+          userPrompt += '- Audio Guidance: Do not create looping background music. Sound effects may still be used only if requested. Keep the Settings mute toggle.\n';
+        } else {
+          userPrompt += '- Audio Guidance: Use generated Web Audio only, start audio after the first user action, keep it subtle, and provide a mute toggle.\n';
+        }
+      }
       if (state.audio.sfx) userPrompt += `- SFX Requirements: ${state.audio.sfx}\n`;
       userPrompt += '\n';
     }
 
-    // ── Output Requirements — Educational Game Specific ──
+    // Compatibility guardrails come immediately before output requirements.
+    userPrompt += '**Option Compatibility Rules:**\n';
+    userPrompt += '- Build one clear primary gameplay loop from the selected Game Type.\n';
+    userPrompt += '- Use selected Mechanics as supporting features; if more than four are selected, combine or prioritise the four that best teach the learning objective.\n';
+    userPrompt += '- Start Menu, HUD, Pause Menu, Settings, scoring/progress, feedback, and completion screens are mandatory even if not selected as mechanics.\n';
+    userPrompt += '- Avoid overbuilding: no external assets, no WebGL requirement, no large generated worlds, no passive idle loops, and no complex physics unless absolutely necessary.\n';
+    userPrompt += '- The game must remain playable with mouse/touch, and keyboard where applicable.\n';
+    userPrompt += '\n';
+
     userPrompt += '**Output Requirements:**\n';
     userPrompt += '- Generate a complete, playable educational game based on the above specifications.\n';
     userPrompt += '- Include all necessary HTML, CSS, and JavaScript in a SINGLE self-contained .html file.\n';
@@ -515,6 +648,15 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // No subject selected but educational topic module enabled
     if (moduleEnabled.educationalTopic && !state.educationalTopic.subject) {
       conflicts.push('No subject selected. The educational game may lack clear learning focus.');
+    }
+
+    if (moduleEnabled.mechanics && state.mechanics.tags.length > 4) {
+      conflicts.push('More than four mechanics selected. The prompt will prioritise the four that best support the learning objective to keep the game reliable.');
+    }
+
+    const actionGameTypes = ['Platformer Quiz', 'Racing Quiz', 'Platformer', 'Racing'];
+    if (moduleEnabled.coreIdentity && moduleEnabled.mechanics && actionGameTypes.includes(state.coreIdentity.genre) && state.mechanics.tags.includes('Drag & Drop')) {
+      conflicts.push('Drag & Drop can clash with action-style games on mobile. The prompt will require click/tap fallback controls if both are used.');
     }
 
     return conflicts;
@@ -990,7 +1132,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     }
 
     // Restore config
-    state = { ...deepClone(DEFAULT_STATE), ...item.config };
+    state = mergeStateWithDefaults(item.config);
     moduleEnabled = { ...deepClone(DEFAULT_MODULE_ENABLED), ...item.moduleEnabled };
 
     // Restore code to iframe
@@ -1074,7 +1216,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
       return;
     }
 
-    state = { ...deepClone(DEFAULT_STATE), ...item.config };
+    state = mergeStateWithDefaults(item.config);
     moduleEnabled = { ...deepClone(DEFAULT_MODULE_ENABLED), ...item.moduleEnabled };
 
     syncUIFromState();

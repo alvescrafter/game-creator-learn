@@ -129,7 +129,7 @@
             "name": "What subjects and game types are supported?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Game Creator Learn supports 12 subjects (Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other) and 12 game types (Quiz/Trivia, Platformer, Puzzle, RPG, Simulation, Adventure, Strategy, Racing, Idle/Incremental, Visual Novel, Escape Room, Card Game). It also offers 15+ game mechanics, 10 art styles, and 6 age ranges from 5-8 years to Masters/Postgraduate."
+              "text": "Game Creator Learn supports 12 subjects (Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other) and reliable educational game types such as Quiz/Trivia, Practice Challenge, Puzzle, Matching Game, Memory Game, Sorting Game, Typing Game, Word Search, Escape Room, Adventure Quiz, Board Game, Platformer Quiz, Racing Quiz, and Card Game. It also offers focused learning mechanics, 10 art styles, and 6 age ranges from 5-8 years to Masters/Postgraduate."
             }
           },
           {
@@ -381,22 +381,19 @@
             <select id="genre" class="field-select" data-path="coreIdentity.genre">
               <option value="">— Select Game Type —</option>
               <option value="Quiz">Quiz / Trivia</option>
-              <option value="Platformer">Platformer</option>
+              <option value="Practice Challenge">Practice Challenge</option>
               <option value="Puzzle">Puzzle</option>
-              <option value="RPG">RPG</option>
-              <option value="Simulation">Simulation</option>
-              <option value="Adventure">Adventure</option>
-              <option value="Strategy">Strategy</option>
-              <option value="Racing">Racing</option>
-              <option value="Idle">Idle / Incremental</option>
-              <option value="Visual Novel">Visual Novel</option>
-              <option value="Escape Room">Escape Room</option>
-              <option value="Card Game">Card Game</option>
-              <option value="Typing Game">Typing Game</option>
+              <option value="Matching Game">Matching Game</option>
               <option value="Memory Game">Memory Game</option>
+              <option value="Sorting Game">Sorting Game</option>
+              <option value="Typing Game">Typing Game</option>
               <option value="Word Search">Word Search</option>
+              <option value="Escape Room">Escape Room</option>
+              <option value="Adventure Quiz">Adventure Quiz</option>
               <option value="Board Game">Board Game</option>
-              <option value="Clicker">Clicker / Tap Game</option>
+              <option value="Platformer Quiz">Platformer Quiz</option>
+              <option value="Racing Quiz">Racing Quiz</option>
+              <option value="Card Game">Card Game</option>
             </select>
           </div>
 
@@ -438,26 +435,20 @@
           <div class="field-group">
             <label class="field-label">Mechanics <span class="field-hint">(click to toggle)</span></label>
             <div id="mechanics-tags" class="tag-grid">
-              <button class="tag-btn" data-value="Quiz System">Quiz System</button>
-              <button class="tag-btn" data-value="Drag & Drop">Drag & Drop</button>
-              <button class="tag-btn" data-value="Matching">Matching</button>
-              <button class="tag-btn" data-value="Fill-in-the-Blank">Fill-in-the-Blank</button>
               <button class="tag-btn" data-value="Multiple Choice">Multiple Choice</button>
-              <button class="tag-btn" data-value="Scoring System">Scoring System</button>
-              <button class="tag-btn" data-value="Progress Tracking">Progress Tracking</button>
+              <button class="tag-btn" data-value="Type Answer">Type Answer</button>
+              <button class="tag-btn" data-value="Fill-in-the-Blank">Fill-in-the-Blank</button>
+              <button class="tag-btn" data-value="Matching">Matching</button>
+              <button class="tag-btn" data-value="Sorting & Categorisation">Sorting & Categorisation</button>
+              <button class="tag-btn" data-value="Sequencing">Sequencing</button>
+              <button class="tag-btn" data-value="Drag & Drop">Drag & Drop</button>
+              <button class="tag-btn" data-value="Timed Challenge">Timed Challenge</button>
               <button class="tag-btn" data-value="Hint System">Hint System</button>
-              <button class="tag-btn" data-value="Leveling Up">Leveling Up</button>
-              <button class="tag-btn" data-value="Health Bar">Health Bar</button>
-              <button class="tag-btn" data-value="Timer">Timer</button>
+              <button class="tag-btn" data-value="Level Progression">Level Progression</button>
+              <button class="tag-btn" data-value="Lives / Attempts">Lives / Attempts</button>
               <button class="tag-btn" data-value="Collectibles">Collectibles</button>
-              <button class="tag-btn" data-value="Dialogue System">Dialogue System</button>
-              <button class="tag-btn" data-value="Physics">Physics</button>
-              <button class="tag-btn" data-value="Procedural Generation">Procedural Generation</button>
-              <button class="tag-btn" data-value="Pause Menu">Pause Menu</button>
-              <button class="tag-btn" data-value="HUD Display">HUD Display</button>
-              <button class="tag-btn" data-value="Start Screen">Start Screen</button>
-              <button class="tag-btn" data-value="Game Over Screen">Game Over Screen</button>
-              <button class="tag-btn" data-value="Lives System">Lives System</button>
+              <button class="tag-btn" data-value="Dialogue Prompts">Dialogue Prompts</button>
+              <button class="tag-btn" data-value="Spaced Review">Spaced Review</button>
               <button class="tag-btn" data-value="Achievements">Achievements</button>
             </div>
           </div>
@@ -472,10 +463,10 @@
             <label for="difficulty" class="field-label">Difficulty Curve</label>
             <select id="difficulty" class="field-select" data-path="mechanics.difficulty">
               <option value="">— Select —</option>
-              <option value="Linear">Linear</option>
-              <option value="Exponential">Exponential</option>
-              <option value="Adaptive">Adaptive (adjusts to learner)</option>
-              <option value="S-Curve">S-Curve</option>
+              <option value="Gentle Ramp">Gentle Ramp</option>
+              <option value="Steady Progression">Steady Progression</option>
+              <option value="Adaptive Review">Adaptive Review (extra practice after mistakes)</option>
+              <option value="Challenge Rounds">Challenge Rounds</option>
             </select>
           </div>
           <button class="module-scroll-bottom" title="Scroll down">▼</button>
@@ -503,7 +494,7 @@
               <option value="Pixel Art">Pixel Art</option>
               <option value="Minimalist Vector">Minimalist Vector</option>
               <option value="ASCII">ASCII Art</option>
-              <option value="Low-Poly 3D">Low-Poly 3D</option>
+              <option value="Simple 2D Shapes">Simple 2D Shapes</option>
               <option value="Hand-drawn">Hand-drawn</option>
               <option value="Flat Design">Flat Design</option>
               <option value="Retro CRT">Retro CRT</option>

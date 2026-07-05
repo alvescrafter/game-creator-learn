@@ -10,8 +10,24 @@ describe('Prompt Builder', () => {
   const TECH_DEFAULTS = {
     framework: 'Vanilla JS/Canvas',
     singleFile: true,
-    assetHandling: 'Use placeholder colored rectangles and simple shapes',
-    maxTokens: 100000,
+    assetHandling: 'Use CSS shapes, Canvas drawing, emoji, Unicode characters, and generated Web Audio only',
+    maxTokens: 50000,
+  };
+
+  const GAME_TYPE_GUIDANCE = {
+    'Platformer Quiz': 'Use very simple movement; gate progress with questions instead of complex physics.',
+    'RPG': 'Convert this to Adventure Quiz: lightweight story, choices, and educational challenges; avoid inventory-heavy systems.',
+  };
+
+  const MECHANIC_GUIDANCE = {
+    'Multiple Choice': 'Include 3-4 plausible options, explain why the chosen answer is right or wrong.',
+    'Drag & Drop': 'Also support click/tap selection as a fallback for touch and keyboard users.',
+    'Physics': 'Keep movement and collisions very simple; prioritise educational questions over physics accuracy.',
+  };
+
+  const DIFFICULTY_CURVE_GUIDANCE = {
+    'Adaptive Review': 'If the learner misses an item, give a hint and revisit a similar item later.',
+    'Exponential': 'Use Challenge Rounds without sudden difficulty spikes.',
   };
 
   function buildSystemPrompt() {
@@ -25,11 +41,18 @@ CORE PRINCIPLES:
 - Difficulty should adapt or progress logically to keep learners in their zone of proximal development
 - Include positive reinforcement (celebrations, progress indicators, encouraging messages)
 - Ensure accessibility: clear fonts, good contrast, colour-blind safe palettes where possible
-- All educational content must be factually accurate and appropriate for the specified age range`;
+- All educational content must be factually accurate and appropriate for the specified age range
+- IMPORTANT: Do NOT exceed 50,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.
+
+DESIGN RESOLUTION RULES:
+- Treat the selected Game Type as the primary loop and the selected Mechanics as supporting interactions.
+- If options compete with each other, choose the simpler interaction that best teaches the learning objective.
+- Prefer deterministic, testable rules over complex physics, procedural systems, or large simulations.`;
 
     systemPrompt += `\n\nYou are proficient in ${TECH_DEFAULTS.framework}.`;
     systemPrompt += '\n\nIMPORTANT: Deliver the ENTIRE game in a SINGLE HTML file including all CSS and JavaScript. Ensure all logic is contained within the file. Do NOT split into separate files.';
     systemPrompt += `\n\nUse ${TECH_DEFAULTS.framework} for rendering and game logic.`;
+    systemPrompt += `\n\nAsset Handling: ${TECH_DEFAULTS.assetHandling}.`;
 
     return systemPrompt;
   }
@@ -69,6 +92,7 @@ CORE PRINCIPLES:
       const core = state.coreIdentity || {};
       userPrompt += '**Game Concept:**\n';
       if (core.genre) userPrompt += `- Game Type: ${core.genre}\n`;
+      if (core.genre && GAME_TYPE_GUIDANCE[core.genre]) userPrompt += `- Game Type Guidance: ${GAME_TYPE_GUIDANCE[core.genre]}\n`;
       if (core.theme) userPrompt += `- Setting/Theme: ${core.theme}\n`;
       const tone = core.tone !== undefined ? core.tone : 50;
       const toneLabel = tone <= 20 ? 'Very Serious/Academic'
@@ -84,9 +108,18 @@ CORE PRINCIPLES:
       userPrompt += '**Gameplay Mechanics:**\n';
       if (mech.tags && mech.tags.length > 0) {
         userPrompt += `- Mechanics: ${mech.tags.join(', ')}\n`;
+        const mechanicGuidance = mech.tags
+          .map(tag => MECHANIC_GUIDANCE[tag] ? `${tag}: ${MECHANIC_GUIDANCE[tag]}` : '')
+          .filter(Boolean);
+        if (mechanicGuidance.length > 0) {
+          userPrompt += `- Mechanic Guidance:\n  - ${mechanicGuidance.join('\n  - ')}\n`;
+        }
       }
       if (mech.rules) userPrompt += `- Specific Rules: ${mech.rules}\n`;
-      if (mech.difficulty) userPrompt += `- Difficulty Curve: ${mech.difficulty}\n`;
+      if (mech.difficulty) {
+        userPrompt += `- Difficulty Curve: ${mech.difficulty}\n`;
+        if (DIFFICULTY_CURVE_GUIDANCE[mech.difficulty]) userPrompt += `- Difficulty Curve Guidance: ${DIFFICULTY_CURVE_GUIDANCE[mech.difficulty]}\n`;
+      }
       userPrompt += '\n';
     }
 
@@ -108,10 +141,24 @@ CORE PRINCIPLES:
     if (enabled.audio) {
       const aud = state.audio || {};
       userPrompt += '**Audio & Soundscape:**\n';
-      if (aud.musicMood) userPrompt += `- Music Mood: ${aud.musicMood}\n`;
+      if (aud.musicMood) {
+        userPrompt += `- Music Mood: ${aud.musicMood}\n`;
+        if (aud.musicMood === 'None') {
+          userPrompt += '- Audio Guidance: Do not create looping background music. Sound effects may still be used only if requested. Keep the Settings mute toggle.\n';
+        } else {
+          userPrompt += '- Audio Guidance: Use generated Web Audio only, start audio after the first user action, keep it subtle, and provide a mute toggle.\n';
+        }
+      }
       if (aud.sfx) userPrompt += `- SFX Requirements: ${aud.sfx}\n`;
       userPrompt += '\n';
     }
+
+    userPrompt += '**Option Compatibility Rules:**\n';
+    userPrompt += '- Build one clear primary gameplay loop from the selected Game Type.\n';
+    userPrompt += '- Use selected Mechanics as supporting features; if more than four are selected, combine or prioritise the four that best teach the learning objective.\n';
+    userPrompt += '- Start Menu, HUD, Pause Menu, Settings, scoring/progress, feedback, and completion screens are mandatory even if not selected as mechanics.\n';
+    userPrompt += '- Avoid overbuilding: no external assets, no WebGL requirement, no large generated worlds, no passive idle loops, and no complex physics unless absolutely necessary.\n';
+    userPrompt += '\n';
 
     userPrompt += '**Output Requirements:**\n';
     userPrompt += '- Generate a complete, playable educational game based on the above specifications.\n';
@@ -152,6 +199,13 @@ CORE PRINCIPLES:
     it('should include framework specification', () => {
       const prompt = buildSystemPrompt();
       expect(prompt).toContain('Vanilla JS/Canvas');
+    });
+
+    it('should include option resolution guardrails', () => {
+      const prompt = buildSystemPrompt();
+      expect(prompt).toContain('DESIGN RESOLUTION RULES');
+      expect(prompt).toContain('selected Game Type as the primary loop');
+      expect(prompt).toContain('deterministic, testable rules');
     });
   });
 
@@ -225,15 +279,29 @@ CORE PRINCIPLES:
     it('should include mechanics tags as comma-separated list', () => {
       const config = {
         mechanics: {
-          tags: ['Drag & Drop', 'Timer', 'Scoring'],
+          tags: ['Drag & Drop', 'Multiple Choice'],
           rules: 'Answer before time runs out',
-          difficulty: 'Progressive',
+          difficulty: 'Adaptive Review',
         }
       };
       const prompt = buildUserPrompt(config, { mechanics: true });
-      expect(prompt).toContain('Drag & Drop, Timer, Scoring');
+      expect(prompt).toContain('Drag & Drop, Multiple Choice');
       expect(prompt).toContain('Answer before time runs out');
-      expect(prompt).toContain('Progressive');
+      expect(prompt).toContain('Adaptive Review');
+      expect(prompt).toContain('click/tap selection as a fallback');
+      expect(prompt).toContain('revisit a similar item later');
+    });
+
+    it('should include game type guidance for reliable educational loops', () => {
+      const config = {
+        coreIdentity: {
+          genre: 'Platformer Quiz',
+          tone: 50,
+        }
+      };
+      const prompt = buildUserPrompt(config, { coreIdentity: true });
+      expect(prompt).toContain('Game Type Guidance');
+      expect(prompt).toContain('gate progress with questions');
     });
 
     it('should include visual requirements with color palette', () => {
@@ -257,12 +325,12 @@ CORE PRINCIPLES:
     it('should include audio requirements', () => {
       const config = {
         audio: {
-          musicMood: 'Upbeat',
+          musicMood: 'None',
           sfx: 'Click sounds',
         }
       };
       const prompt = buildUserPrompt(config, { audio: true });
-      expect(prompt).toContain('Upbeat');
+      expect(prompt).toContain('Do not create looping background music');
       expect(prompt).toContain('Click sounds');
     });
 
