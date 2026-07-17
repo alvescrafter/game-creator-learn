@@ -12,12 +12,14 @@
     API: 'gameCreatorLearn.api.v1',
     HISTORY: 'gameCreatorLearn.history.v1',
     TEMPLATES: 'gameCreatorLearn.templates.v1',
+    THEME: 'gameCreatorLearn.theme.v1',
   };
 
   const MAX_HISTORY = 50;
 
   // ── Default State ──
   const DEFAULT_STATE = {
+    outputMode: 'single', // 'single' | 'multi'
     educationalTopic: {
       subject: '',
       topic: '',
@@ -54,9 +56,8 @@
   // ── Background Tech Stack Defaults (not shown in UI) ──
   const TECH_DEFAULTS = {
     framework: 'Vanilla JS/Canvas',
-    singleFile: true,
     assetHandling: 'Use CSS shapes, Canvas drawing, emoji, Unicode characters, and generated Web Audio only',
-    maxTokens: 50000,
+    maxTokens: 100000, // single-file limit; multi-file omits max_tokens entirely
   };
 
   const GAME_TYPE_GUIDANCE = {
@@ -211,7 +212,8 @@
   let apiSettings = deepClone(DEFAULT_API);
   let moduleEnabled = deepClone(DEFAULT_MODULE_ENABLED);
   let conversationHistory = []; // for refine feature
-  let lastGeneratedCode = '';
+  let lastGeneratedCode = ''; // single-file code (for download/refresh)
+  let lastGeneratedFiles = null; // multi-file array of {path, content} (for download/refresh)
   let isGenerating = false;
   let promptLocked = true; // prompt is locked by default
   let customPromptText = ''; // stores manually edited prompt when unlocked
@@ -387,7 +389,7 @@ CORE PRINCIPLES:
 - Include positive reinforcement (celebrations, progress indicators, encouraging messages)
 - Ensure accessibility: clear fonts, good contrast, colour-blind safe palettes where possible
 - All educational content must be factually accurate and appropriate for the specified age range
-- IMPORTANT: Do NOT exceed 50,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.
+- IMPORTANT: Do NOT exceed 100,000 tokens in your total response. Keep the output concise and efficient while still delivering a complete, playable game. Avoid unnecessary comments, verbose variable names, or redundant code. Prioritise functionality over excessive documentation.
 
 DESIGN RESOLUTION RULES:
 - Treat the selected Game Type as the primary loop and the selected Mechanics as supporting interactions.
@@ -447,11 +449,17 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
    - Touch-friendly buttons for mobile users
    - Canvas/game area should scale appropriately
 
-8. SINGLE HTML FILE:
-   - ALL HTML, CSS, and JavaScript must be in ONE self-contained .html file
-   - No external dependencies, CDN links, or separate files
+8. OUTPUT FORMAT:
    - All assets must be generated with code (CSS shapes, canvas drawing, emoji, Unicode characters)
+   - No external dependencies, CDN links, or external image/sound files
    - The game must be immediately playable when opened in a browser`;
+
+    // Output-mode-specific instructions
+    if (isMultiFileMode()) {
+      systemPrompt += `\n\nDELIVER AS SEPARATE FILES: index.html, style.css, and game.js. Output the result as JSON in this exact format:\n{"files": [{"path": "index.html", "content": "..."}, {"path": "style.css", "content": "..."}, {"path": "game.js", "content": "..."}]}\nNo token limit — make the game as detailed and complete as you want. Keep each file focused (HTML structure in index.html, styling in style.css, game logic in game.js).`;
+    } else {
+      systemPrompt += `\n\nALL HTML, CSS, and JavaScript must be in ONE self-contained .html file. No external dependencies, CDN links, or separate files.`;
+    }
 
     // Always include tech stack context
     systemPrompt += `\n\nYou are proficient in ${TECH_DEFAULTS.framework}.`;
@@ -534,7 +542,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // Tech stack is always included in background
     userPrompt += '**Technical Instructions:**\n';
     userPrompt += `- Framework: ${TECH_DEFAULTS.framework}\n`;
-    userPrompt += `- Single File: Yes\n`;
+    userPrompt += `- Output Mode: ${isMultiFileMode() ? 'Multi-File (index.html + style.css + game.js as JSON)' : 'Single self-contained .html file'}\n`;
     userPrompt += `- Asset Handling: ${TECH_DEFAULTS.assetHandling}\n`;
     userPrompt += '\n';
 
@@ -564,7 +572,14 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
 
     userPrompt += '**Output Requirements:**\n';
     userPrompt += '- Generate a complete, playable educational game based on the above specifications.\n';
-    userPrompt += '- Include all necessary HTML, CSS, and JavaScript in a SINGLE self-contained .html file.\n';
+    if (isMultiFileMode()) {
+      userPrompt += '- Deliver as SEPARATE FILES: index.html, style.css, and game.js.\n';
+      userPrompt += '- Output the result as JSON: {"files": [{"path": "index.html", "content": "..."}, {"path": "style.css", "content": "..."}, {"path": "game.js", "content": "..."}]}\n';
+      userPrompt += '- There is NO token limit — make the game as detailed and complete as you want.\n';
+      userPrompt += '- index.html should reference style.css via <link> and game.js via <script src>.\n';
+    } else {
+      userPrompt += '- Include all necessary HTML, CSS, and JavaScript in a SINGLE self-contained .html file.\n';
+    }
     userPrompt += '- Make the game immediately playable when opened in a browser — no build step, no server, no external dependencies.\n';
     userPrompt += '- The game MUST teach the specified subject/topic effectively.\n';
     userPrompt += '- Include clear learning objectives displayed at the start or in a help section.\n';
@@ -686,6 +701,20 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
   function getApiType() {
     const preset = PROVIDER_PRESETS[apiSettings.provider];
     return preset?.apiType || 'openai';
+  }
+
+  // ── Output mode helpers ──
+  function isMultiFileMode() {
+    return state.outputMode === 'multi';
+  }
+
+  // Returns 100000 for single-file mode, null for multi-file mode (omit max_tokens).
+  // For Anthropic (Claude) in multi-file mode, returns 200000 since the field is required.
+  function getEffectiveMaxTokens() {
+    if (isMultiFileMode()) {
+      return getApiType() === 'anthropic' ? 200000 : null;
+    }
+    return TECH_DEFAULTS.maxTokens; // 100000
   }
 
   // ── Fetch available models from the API ──
@@ -810,7 +839,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
 
       const body = {
         model: apiSettings.model,
-        max_tokens: TECH_DEFAULTS.maxTokens,
+        max_tokens: getEffectiveMaxTokens() || 200000, // Claude requires the field; multi-file uses 200000
         messages: chatMessages,
       };
       if (systemMsg) body.system = systemMsg.content;
@@ -842,14 +871,18 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
       headers['Authorization'] = `Bearer ${apiSettings.key}`;
     }
 
-    const maxTokens = TECH_DEFAULTS.maxTokens;
+    const maxTokens = getEffectiveMaxTokens();
 
     const body = {
       model: apiSettings.model,
       messages,
       temperature: parseFloat(apiSettings.temperature) || 0.7,
-      max_tokens: maxTokens,
     };
+    // Omit max_tokens entirely in multi-file mode (null) to let the provider use its default/maximum.
+    // Single-file mode sends 100000.
+    if (maxTokens !== null) {
+      body.max_tokens = maxTokens;
+    }
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -866,6 +899,260 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     const content = data.choices?.[0]?.message?.content;
     if (!content) throw new Error('API returned empty response');
     return content;
+  }
+
+  // ═══════════════════════════════════════════════
+  // STREAMING API CLIENT — async generator yielding content chunks
+  // ═══════════════════════════════════════════════
+
+  async function* callLLMStream(messages) {
+    const baseUrl = apiSettings.baseUrl.replace(/\/+$/, '');
+    const apiType = getApiType();
+    const maxTokens = getEffectiveMaxTokens();
+
+    // ── Anthropic Claude native API (SSE) ──
+    if (apiType === 'anthropic') {
+      const endpoint = `${baseUrl}/messages`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': apiSettings.key,
+        'anthropic-version': '2023-06-01',
+      };
+
+      const systemMsg = messages.find(m => m.role === 'system');
+      const chatMessages = messages
+        .filter(m => m.role !== 'system')
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const body = {
+        model: apiSettings.model,
+        max_tokens: maxTokens || 200000, // Claude requires the field; multi-file uses 200000
+        messages: chatMessages,
+        stream: true,
+      };
+      if (systemMsg) body.system = systemMsg.content;
+      if (apiSettings.temperature != null) body.temperature = parseFloat(apiSettings.temperature);
+
+      const res = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => 'Unknown error');
+        throw new Error(`API Error ${res.status}: ${errText}`);
+      }
+
+      // Fallback: not SSE → parse as JSON and yield entire content at once
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('text/event-stream')) {
+        const data = await res.json();
+        const content = data.content?.[0]?.text;
+        if (!content) throw new Error('API returned empty response');
+        yield content;
+        return;
+      }
+
+      // Parse SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === '[DONE]') continue;
+          try {
+            const evt = JSON.parse(dataStr);
+            // content_block_delta events carry delta.text
+            if (evt.type === 'content_block_delta' && evt.delta && evt.delta.text) {
+              yield evt.delta.text;
+            }
+          } catch { /* ignore malformed */ }
+        }
+      }
+      return;
+    }
+
+    // ── OpenAI-compatible API (OpenAI, Gemini, Ollama, LM Studio, Custom) ──
+    const endpoint = `${baseUrl}/chat/completions`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiSettings.key) headers['Authorization'] = `Bearer ${apiSettings.key}`;
+
+    const body = {
+      model: apiSettings.model,
+      messages,
+      temperature: parseFloat(apiSettings.temperature) || 0.7,
+      stream: true,
+    };
+    // Omit max_tokens entirely in multi-file mode (null). Single-file sends 100000.
+    if (maxTokens !== null) body.max_tokens = maxTokens;
+
+    const res = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => 'Unknown error');
+      throw new Error(`API Error ${res.status}: ${errText}`);
+    }
+
+    // Fallback: not SSE → parse as JSON and yield entire content at once
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('text/event-stream')) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error('API returned empty response');
+      yield content;
+      return;
+    }
+
+    // Parse SSE stream
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (dataStr === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(dataStr);
+          const delta = evt.choices?.[0]?.delta?.content;
+          if (delta) yield delta;
+        } catch { /* ignore malformed */ }
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  // LIVE VIEW — real-time streaming display
+  // ═══════════════════════════════════════════════
+
+  let liveViewBuffer = '';
+  let liveViewCodeStarted = false;
+  let liveViewBoundaryIndex = -1;
+
+  function liveViewStart() {
+    liveViewBuffer = '';
+    liveViewCodeStarted = false;
+    liveViewBoundaryIndex = -1;
+    const thinking = document.getElementById('liveview-thinking');
+    const code = document.getElementById('liveview-code');
+    const stats = document.getElementById('liveview-stats');
+    const placeholder = document.getElementById('liveview-placeholder');
+    if (thinking) thinking.textContent = '';
+    if (code) code.textContent = '';
+    if (stats) stats.textContent = '0 lines · 0 chars';
+    if (placeholder) placeholder.classList.add('hidden');
+    liveViewSetStatus('thinking', '⏳ Thinking...');
+    switchTab('liveview');
+  }
+
+  function liveViewAppendChunk(chunk) {
+    liveViewBuffer += chunk;
+    const thinking = document.getElementById('liveview-thinking');
+    const code = document.getElementById('liveview-code');
+    const stats = document.getElementById('liveview-stats');
+    if (!thinking || !code) return;
+
+    // Detect code boundary if not yet started
+    if (!liveViewCodeStarted) {
+      const boundary = detectCodeBoundary(liveViewBuffer);
+      if (boundary !== -1) {
+        liveViewCodeStarted = true;
+        liveViewBoundaryIndex = boundary;
+        const thinkingText = liveViewBuffer.slice(0, boundary);
+        const codeText = liveViewBuffer.slice(boundary);
+        thinking.textContent = thinkingText;
+        code.textContent = codeText;
+        liveViewSetStatus('building', '💻 Building code...');
+      } else {
+        // Still in thinking phase
+        thinking.textContent = liveViewBuffer;
+      }
+    } else {
+      // Already in code phase — show everything from boundary onward
+      code.textContent = liveViewBuffer.slice(liveViewBoundaryIndex);
+    }
+
+    // Update live stats for code section
+    if (liveViewCodeStarted) {
+      const codeText = code.textContent;
+      const lines = codeText.split('\n').length;
+      const chars = codeText.length;
+      if (stats) stats.textContent = `${lines} lines · ${chars} chars`;
+    }
+
+    // Auto-scroll both sections to bottom
+    autoScrollLiveView();
+  }
+
+  // Detects the index in the buffer where code begins. Returns -1 if no boundary yet.
+  function detectCodeBoundary(buffer) {
+    const patterns = [
+      '<!DOCTYPE',
+      '<html',
+      '<head',
+      ' ```html',
+      ' ```json',
+      '```html',
+      '```json',
+      '{"files":',
+      '{"files" :',
+      '{ "files"',
+    ];
+    for (const p of patterns) {
+      const idx = buffer.indexOf(p);
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  }
+
+  function autoScrollLiveView() {
+    const thinking = document.getElementById('liveview-thinking');
+    const code = document.getElementById('liveview-code');
+    if (thinking) thinking.scrollTop = thinking.scrollHeight;
+    if (code) code.scrollTop = code.scrollHeight;
+  }
+
+  function liveViewFinish() {
+    liveViewSetStatus('complete', '✅ Complete');
+  }
+
+  function liveViewError(msg) {
+    liveViewSetStatus('error', '❌ Error');
+    const thinking = document.getElementById('liveview-thinking');
+    if (thinking) {
+      thinking.textContent += (thinking.textContent ? '\n\n' : '') + `❌ ${msg}`;
+    }
+  }
+
+  function liveViewClear() {
+    liveViewBuffer = '';
+    liveViewCodeStarted = false;
+    liveViewBoundaryIndex = -1;
+    const thinking = document.getElementById('liveview-thinking');
+    const code = document.getElementById('liveview-code');
+    const stats = document.getElementById('liveview-stats');
+    const placeholder = document.getElementById('liveview-placeholder');
+    if (thinking) thinking.textContent = '';
+    if (code) code.textContent = '';
+    if (stats) stats.textContent = '0 lines · 0 chars';
+    if (placeholder) placeholder.classList.remove('hidden');
+    liveViewSetStatus('idle', '⚪ Idle');
+  }
+
+  function liveViewSetStatus(type, text) {
+    const status = document.getElementById('liveview-status');
+    if (!status) return;
+    status.textContent = text;
+    status.className = 'liveview-status status-' + type;
   }
 
   // ═══════════════════════════════════════════════
@@ -958,6 +1245,303 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     }
   }
 
+  // ═══════════════════════════════════════════════
+  // MULTI-FILE CODE EXTRACTION
+  // ═══════════════════════════════════════════════
+
+  // Strip markdown code fences from a response string
+  function stripMarkdownFences(response) {
+    // Remove opening fence ```json / ```html / ``` and closing ```
+    const fenceMatch = response.match(/```(?:json|html|javascript|js)?\s*\n([\s\S]*?)```/i);
+    if (fenceMatch && fenceMatch[1]) return fenceMatch[1].trim();
+    return response.trim();
+  }
+
+  // Extract multi-file output: {files: [{path, content}]} from the AI response.
+  // Fallbacks: regex extraction of {"files":...}, then single-file wrap.
+  function extractMultiFileCode(response) {
+    let cleaned = stripMarkdownFences(response);
+
+    // Attempt 1: direct JSON.parse
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (parsed && Array.isArray(parsed.files)) {
+        return validateAndNormaliseFiles(parsed.files);
+      }
+    } catch { /* continue to fallbacks */ }
+
+    // Attempt 2: regex extraction of {"files": ...}
+    const jsonMatch = cleaned.match(/\{\s*"files"\s*:\s*\[[\s\S]*?\]\s*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed && Array.isArray(parsed.files)) {
+          return validateAndNormaliseFiles(parsed.files);
+        }
+      } catch { /* continue */ }
+    }
+
+    // Attempt 3: single-file wrap — treat the whole response as one HTML file
+    const html = extractCode(response);
+    return validateAndNormaliseFiles([
+      { path: 'index.html', content: html },
+      { path: 'style.css', content: '/* inlined into index.html */' },
+      { path: 'game.js', content: '// inlined into index.html' },
+    ]);
+  }
+
+  // Ensure required files exist (index.html, style.css, game.js). Normalise to {path, content}.
+  function validateAndNormaliseFiles(files) {
+    const normalised = files.map(f => ({
+      path: f.path || f.name || 'unknown.txt',
+      content: f.content != null ? String(f.content) : '',
+    }));
+
+    const required = ['index.html', 'style.css', 'game.js'];
+    for (const req of required) {
+      if (!normalised.some(f => f.path === req || f.path.endsWith('/' + req))) {
+        // Missing required file — add a stub so rendering doesn't break
+        normalised.push({ path: req, content: `/* ${req} not provided by AI */` });
+      }
+    }
+    return normalised;
+  }
+
+  // ═══════════════════════════════════════════════
+  // MULTI-FILE IFRAME RENDERING
+  // ═══════════════════════════════════════════════
+
+  // Find a file in the files array by path (exact or ending match)
+  function findFile(files, name) {
+    return files.find(f => f.path === name || f.path.endsWith('/' + name));
+  }
+
+  // Render multi-file output in the iframe by inlining CSS via <style> and JS via <script>.
+  // Also populates the file browser. Handles asset references by replacing with placeholder data URIs.
+  function renderMultiFileInIframe(files) {
+    const iframe = document.getElementById('game-iframe');
+    const placeholder = document.getElementById('iframe-placeholder');
+    const errorPanel = document.getElementById('error-panel');
+    if (errorPanel) errorPanel.classList.add('hidden');
+
+    const htmlFile = findFile(files, 'index.html');
+    const cssFile = findFile(files, 'style.css');
+    const jsFile = findFile(files, 'game.js');
+
+    let html = htmlFile ? htmlFile.content : '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><h1>index.html missing</h1></body></html>';
+    const css = cssFile ? cssFile.content : '';
+    const js = jsFile ? jsFile.content : '';
+
+    // Replace <link rel="stylesheet" href="style.css"> with inline <style>
+    html = html.replace(/<link[^>]*href=["'](?:\.\/)?style\.css["'][^>]*>/gi, `<style>\n${css}\n</style>`);
+    // Replace <script src="game.js"></script> with inline <script>
+    html = html.replace(/<script[^>]*src=["'](?:\.\/)?game\.js["'][^>]*><\/script>/gi, `<script>\n${js}\n</script>`);
+
+    // If the HTML didn't have explicit link/script tags, inject the CSS and JS
+    if (css && !html.includes('<style>')) {
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `<style>\n${css}\n</style>\n</head>`);
+      } else if (html.includes('<head>')) {
+        html = html.replace('<head>', `<head>\n<style>\n${css}\n</style>`);
+      } else {
+        html = `<style>\n${css}\n</style>\n` + html;
+      }
+    }
+    if (js && !html.includes('<script>')) {
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `<script>\n${js}\n</script>\n</body>`);
+      } else {
+        html = html + `\n<script>\n${js}\n</script>`;
+      }
+    }
+
+    // Handle asset references: replace <img src="..."> and url(...) with placeholder data URIs
+    const placeholderImg = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#10b981"/><text x="32" y="36" font-size="10" text-anchor="middle" fill="white">asset</text></svg>');
+    html = html.replace(/<img([^>]*?)src=["'](?!data:)([^"']+)["']([^>]*?)>/gi, (match, before, src, after) => {
+      return `<img${before}src="${placeholderImg}"${after}>`;
+    });
+    html = html.replace(/url\((?!data:)(["']?)([^"')]+)\1\)/gi, `url("${placeholderImg}")`);
+
+    try {
+      iframe.srcdoc = html;
+      iframe.removeAttribute('src');
+      placeholder.classList.add('hidden');
+      lastGeneratedFiles = files;
+      lastGeneratedCode = html; // keep for fallback refresh
+      populateFileBrowser(files);
+      switchTab('sandbox');
+    } catch (e) {
+      try {
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        iframe.src = url;
+        iframe.removeAttribute('srcdoc');
+        placeholder.classList.add('hidden');
+        lastGeneratedFiles = files;
+        lastGeneratedCode = html;
+        populateFileBrowser(files);
+        switchTab('sandbox');
+      } catch (e2) {
+        showToast('Failed to render multi-file game: ' + e2.message, 'error');
+        showErrorInPanel('Failed to render multi-file game: ' + e2.message);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  // FILE BROWSER (Files panel)
+  // ═══════════════════════════════════════════════
+
+  function fileIcon(path) {
+    if (path.endsWith('.html') || path.endsWith('.htm')) return '🌐';
+    if (path.endsWith('.css')) return '🎨';
+    if (path.endsWith('.js')) return '⚙️';
+    if (path.endsWith('.json')) return '📋';
+    return '📄';
+  }
+
+  function populateFileBrowser(files) {
+    const list = document.getElementById('file-list');
+    const viewer = document.getElementById('file-viewer-content');
+    if (!list || !viewer) return;
+
+    list.innerHTML = '';
+    files.forEach((file, idx) => {
+      const item = document.createElement('div');
+      item.className = 'file-item' + (idx === 0 ? ' active' : '');
+      item.dataset.path = file.path;
+      item.innerHTML = `<span class="file-item-icon">${fileIcon(file.path)}</span><span class="file-item-name">${escapeHtml(file.path)}</span>`;
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        showFileInViewer(file);
+      });
+      list.appendChild(item);
+    });
+
+    // Show first file by default
+    if (files.length > 0) showFileInViewer(files[0]);
+    else viewer.innerHTML = '<p class="placeholder">No files to display.</p>';
+  }
+
+  function showFileInViewer(file) {
+    const viewer = document.getElementById('file-viewer-content');
+    if (!viewer) return;
+    const content = file.content || '';
+    const lines = content.split('\n').length;
+    const chars = content.length;
+    viewer.innerHTML = '';
+    const header = document.createElement('div');
+    header.style.cssText = 'padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.75rem;';
+    header.textContent = `${file.path} — ${lines} lines · ${chars} chars`;
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'white-space:pre;tab-size:2;';
+    pre.textContent = content;
+    viewer.appendChild(header);
+    viewer.appendChild(pre);
+  }
+
+  // ═══════════════════════════════════════════════
+  // MULTI-FILE VALIDATION
+  // ═══════════════════════════════════════════════
+
+  function validateMultiFileGame(files) {
+    const issues = [];
+    const htmlFile = findFile(files, 'index.html');
+    const cssFile = findFile(files, 'style.css');
+    const jsFile = findFile(files, 'game.js');
+
+    if (!htmlFile) issues.push('index.html is missing');
+    if (!cssFile) issues.push('style.css is missing');
+    if (!jsFile) issues.push('game.js is missing');
+
+    if (htmlFile) {
+      const html = htmlFile.content || '';
+      if (html.trim().length === 0) issues.push('index.html is empty');
+      if (cssFile && !html.includes('style.css') && !html.includes('<style>')) {
+        issues.push('index.html does not reference style.css');
+      }
+      if (jsFile && !html.includes('game.js') && !html.includes('<script>')) {
+        issues.push('index.html does not reference game.js');
+      }
+    }
+
+    if (jsFile) {
+      const js = jsFile.content || '';
+      if (js.trim().length === 0) issues.push('game.js is empty');
+      if (!/canvas/i.test(js) && !/document\.(getElementById|querySelector)/i.test(js)) {
+        issues.push('game.js may not set up a canvas or game container');
+      }
+      if (!/requestAnimationFrame|setInterval|setTimeout/i.test(js)) {
+        issues.push('game.js may not have a game loop (requestAnimationFrame/setInterval)');
+      }
+      if (!/addEventListener/i.test(js)) {
+        issues.push('game.js has no event listeners');
+      }
+    }
+
+    return issues;
+  }
+
+  // ═══════════════════════════════════════════════
+  // DOWNLOAD — dispatcher + single-file + multi-file ZIP
+  // ═══════════════════════════════════════════════
+
+  function downloadGame() {
+    if (isMultiFileMode()) {
+      downloadZIP();
+    } else {
+      downloadHTML();
+    }
+  }
+
+  function downloadZIP() {
+    if (!lastGeneratedFiles || lastGeneratedFiles.length === 0) {
+      showToast('No files to download. Generate a game first!', 'warning');
+      return;
+    }
+    loadJSZip().then((JSZip) => {
+      const zip = new JSZip();
+      lastGeneratedFiles.forEach(file => {
+        // Preserve folder structure: split path into folders + filename
+        const path = file.path.replace(/^\.?\//, ''); // strip leading ./ or /
+        zip.file(path, file.content || '');
+      });
+      zip.generateAsync({ type: 'blob' }).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const subject = state.educationalTopic.subject || 'edu';
+        const topic = state.educationalTopic.topic || 'game';
+        a.download = `${subject.toLowerCase()}-${topic.toLowerCase().replace(/\s+/g, '-')}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('ZIP downloaded! 💾', 'success');
+      }).catch((err) => {
+        showToast('Failed to create ZIP: ' + err.message, 'error');
+      });
+    }).catch((err) => {
+      showToast('Failed to load JSZip library: ' + err.message, 'error');
+    });
+  }
+
+  // Dynamically load JSZip from CDN. Returns a Promise that resolves with the JSZip constructor.
+  function loadJSZip() {
+    return new Promise((resolve, reject) => {
+      if (window.JSZip) { resolve(window.JSZip); return; }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      script.onload = () => {
+        if (window.JSZip) resolve(window.JSZip);
+        else reject(new Error('JSZip failed to initialise'));
+      };
+      script.onerror = () => reject(new Error('Could not load JSZip from CDN'));
+      document.head.appendChild(script);
+    });
+  }
+
   function hideErrorPanel() {
     const errorPanel = document.getElementById('error-panel');
     if (errorPanel) errorPanel.classList.add('hidden');
@@ -985,7 +1569,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     }
 
     isGenerating = true;
-    showLoading('Generating your educational game...');
+    // NO loading overlay — Live View provides real-time feedback instead
     hideErrorPanel();
     document.getElementById('btn-generate').disabled = true;
 
@@ -998,28 +1582,48 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
         { role: 'user', content: userPrompt },
       ];
 
-      const response = await callLLM(conversationHistory);
+      // Start live view (switches to Live View tab)
+      liveViewStart();
+
+      // Stream the response
+      let response = '';
+      for await (const chunk of callLLMStream(conversationHistory)) {
+        response += chunk;
+        liveViewAppendChunk(chunk);
+      }
       conversationHistory.push({ role: 'assistant', content: response });
+      liveViewFinish();
 
-      const code = extractCode(response);
-
-      if (!code || code.trim().length === 0) {
-        throw new Error('The AI returned empty code. Try adjusting your settings or prompt.');
+      if (!response || response.trim().length === 0) {
+        throw new Error('The AI returned an empty response. Try adjusting your settings or prompt.');
       }
 
-      renderInIframe(code);
-
-      // Save to history
-      saveToHistory(code);
+      if (isMultiFileMode()) {
+        const files = extractMultiFileCode(response);
+        renderMultiFileInIframe(files);
+        const issues = validateMultiFileGame(files);
+        if (issues.length > 0) {
+          console.warn('Multi-file validation issues:', issues);
+          showToast('Game generated with notes: ' + issues.join('; '), 'warning', 5000);
+        }
+        saveToHistory(null, false, files);
+      } else {
+        const code = extractCode(response);
+        if (!code || code.trim().length === 0) {
+          throw new Error('The AI returned no playable code. Try adjusting your settings or prompt.');
+        }
+        renderInIframe(code);
+        saveToHistory(code);
+      }
 
       showToast('Educational game generated successfully! 🎓', 'success');
     } catch (err) {
       console.error('Generation failed:', err);
+      liveViewError(err.message);
       showToast('Generation failed: ' + err.message, 'error', 5000);
       showErrorInPanel('Generation failed: ' + err.message);
     } finally {
       isGenerating = false;
-      hideLoading();
       document.getElementById('btn-generate').disabled = false;
     }
   }
@@ -1036,39 +1640,62 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     }
 
     isGenerating = true;
-    showLoading('Refining your educational game...');
+    // NO loading overlay — Live View provides real-time feedback instead
     hideErrorPanel();
     document.getElementById('btn-refine').disabled = true;
 
     try {
-      conversationHistory.push({
-        role: 'user',
-        content: `Refine the educational game with this change: ${instruction}\n\nReturn the COMPLETE updated game code. Do not omit any parts. Ensure all educational content remains accurate and the learning objectives are still met.`,
-      });
-
-      const response = await callLLM(conversationHistory);
-      conversationHistory.push({ role: 'assistant', content: response });
-
-      const code = extractCode(response);
-
-      if (!code || code.trim().length === 0) {
-        throw new Error('The AI returned empty code. Try rephrasing your refinement.');
+      // Build refinement instruction. For multi-file, include current files as JSON.
+      let refineContent = `Refine the educational game with this change: ${instruction}\n\nReturn the COMPLETE updated game code. Do not omit any parts. Ensure all educational content remains accurate and the learning objectives are still met.`;
+      if (isMultiFileMode() && lastGeneratedFiles) {
+        refineContent += `\n\nHere are the current files as JSON. Update them with the requested changes and return the COMPLETE set of files in the same JSON format:\n\`\`\`json\n${JSON.stringify({ files: lastGeneratedFiles }, null, 2)}\n\`\`\``;
       }
 
-      renderInIframe(code);
+      conversationHistory.push({ role: 'user', content: refineContent });
 
-      // Update history entry
-      saveToHistory(code, true);
+      // Start live view (switches to Live View tab)
+      liveViewStart();
+
+      // Stream the response
+      let response = '';
+      for await (const chunk of callLLMStream(conversationHistory)) {
+        response += chunk;
+        liveViewAppendChunk(chunk);
+      }
+      conversationHistory.push({ role: 'assistant', content: response });
+      liveViewFinish();
+
+      if (!response || response.trim().length === 0) {
+        throw new Error('The AI returned an empty response. Try rephrasing your refinement.');
+      }
+
+      if (isMultiFileMode()) {
+        const files = extractMultiFileCode(response);
+        renderMultiFileInIframe(files);
+        const issues = validateMultiFileGame(files);
+        if (issues.length > 0) {
+          console.warn('Multi-file validation issues:', issues);
+          showToast('Game refined with notes: ' + issues.join('; '), 'warning', 5000);
+        }
+        saveToHistory(null, true, files);
+      } else {
+        const code = extractCode(response);
+        if (!code || code.trim().length === 0) {
+          throw new Error('The AI returned no playable code. Try rephrasing your refinement.');
+        }
+        renderInIframe(code);
+        saveToHistory(code, true);
+      }
 
       showToast('Educational game refined! 🔄', 'success');
       document.getElementById('refine-input').value = '';
     } catch (err) {
       console.error('Refine failed:', err);
+      liveViewError(err.message);
       showToast('Refine failed: ' + err.message, 'error', 5000);
       showErrorInPanel('Refine failed: ' + err.message);
     } finally {
       isGenerating = false;
-      hideLoading();
       document.getElementById('btn-refine').disabled = false;
     }
   }
@@ -1077,7 +1704,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
   // HISTORY
   // ═══════════════════════════════════════════════
 
-  function saveToHistory(code, isRefine = false) {
+  function saveToHistory(code, isRefine = false, files = null) {
     const list = readHistory();
     const subject = state.educationalTopic.subject || 'Unknown';
     const topic = state.educationalTopic.topic || 'Untitled';
@@ -1089,7 +1716,10 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
       subject,
       topic,
       genre,
-      code,
+      // Single-file: store code. Multi-file: store files array. Backward compat: old entries without outputMode are single-file.
+      code: files ? null : code,
+      files: files ? deepClone(files) : null,
+      outputMode: state.outputMode || 'single',
       config: deepClone(state),
       moduleEnabled: deepClone(moduleEnabled),
       timestamp: Date.now(),
@@ -1135,8 +1765,15 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     state = mergeStateWithDefaults(item.config);
     moduleEnabled = { ...deepClone(DEFAULT_MODULE_ENABLED), ...item.moduleEnabled };
 
-    // Restore code to iframe
-    if (item.code) {
+    // Restore code/files to iframe (backward compat: entries without outputMode treated as single-file)
+    const mode = item.outputMode || 'single';
+    if (mode === 'multi' && item.files && item.files.length > 0) {
+      lastGeneratedFiles = item.files;
+      lastGeneratedCode = '';
+      renderMultiFileInIframe(item.files);
+    } else if (item.code) {
+      lastGeneratedCode = item.code;
+      lastGeneratedFiles = null;
       renderInIframe(item.code);
     }
 
@@ -1289,6 +1926,17 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
       btn.classList.toggle('active', isActive);
     });
 
+    // Sync output mode radios (no data-path — handled separately)
+    document.querySelectorAll('input[name="outputMode"]').forEach(radio => {
+      radio.checked = (radio.value === state.outputMode);
+    });
+
+    // Show/hide Files tab based on output mode
+    updateFilesTabVisibility();
+
+    // Update download button label based on output mode
+    updateDownloadButtonLabel();
+
     // Update derived labels
     updateToneLabel();
     updateTempLabel();
@@ -1324,6 +1972,40 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     document.querySelectorAll('#mechanics-tags .tag-btn.active').forEach(btn => {
       state.mechanics.tags.push(btn.dataset.value);
     });
+
+    // Sync output mode from checked radio (no data-path — handled separately)
+    const checkedMode = document.querySelector('input[name="outputMode"]:checked');
+    if (checkedMode) {
+      state.outputMode = checkedMode.value;
+    }
+  }
+
+  // Show/hide the Files tab based on current output mode
+  function updateFilesTabVisibility() {
+    const filesTab = document.getElementById('tab-files');
+    if (!filesTab) return;
+    if (isMultiFileMode()) {
+      filesTab.classList.remove('tab-hidden');
+    } else {
+      filesTab.classList.add('tab-hidden');
+      // If currently viewing Files tab, switch away to sandbox
+      if (filesTab.classList.contains('active')) {
+        switchTab('sandbox');
+      }
+    }
+  }
+
+  // Update the sandbox download button label based on output mode
+  function updateDownloadButtonLabel() {
+    const btn = document.getElementById('btn-download');
+    if (!btn) return;
+    if (isMultiFileMode()) {
+      btn.textContent = '💾 Download ZIP';
+      btn.title = 'Download all files as ZIP';
+    } else {
+      btn.textContent = '💾 Download';
+      btn.title = 'Download HTML file';
+    }
   }
 
   function updatePromptPreview() {
@@ -1364,12 +2046,44 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
   // ═══════════════════════════════════════════════
 
   function switchTab(tabName) {
+    // Guard: Files tab is only available in multi-file mode
+    if (tabName === 'files' && !isMultiFileMode()) {
+      switchTab('sandbox');
+      return;
+    }
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
     document.querySelectorAll('.tab-panel').forEach(panel => {
       panel.classList.toggle('active', panel.id === `panel-${tabName}`);
     });
+  }
+
+  // ═══════════════════════════════════════════════
+  // THEME TOGGLE
+  // ═══════════════════════════════════════════════
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(KEYS.THEME, next); } catch { /* ignore */ }
+  }
+
+  function loadTheme() {
+    let theme = 'light';
+    try { theme = localStorage.getItem(KEYS.THEME) || 'light'; } catch { /* ignore */ }
+    applyTheme(theme);
   }
 
   // ═══════════════════════════════════════════════
@@ -1726,18 +2440,49 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // ── Save template ──
     document.getElementById('btn-save-template').addEventListener('click', saveTemplate);
 
-    // ── Download HTML ──
-    document.getElementById('btn-download').addEventListener('click', downloadHTML);
+    // ── Download (dispatcher: single-file HTML or multi-file ZIP) ──
+    document.getElementById('btn-download').addEventListener('click', downloadGame);
+
+    // ── Download ZIP (Files panel toolbar) ──
+    const btnDownloadZip = document.getElementById('btn-download-zip');
+    if (btnDownloadZip) {
+      btnDownloadZip.addEventListener('click', downloadZIP);
+    }
 
     // ── Fullscreen ──
     document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
 
     // ── Refresh iframe ──
     document.getElementById('btn-refresh-iframe').addEventListener('click', () => {
-      if (lastGeneratedCode) {
+      if (isMultiFileMode() && lastGeneratedFiles) {
+        renderMultiFileInIframe(lastGeneratedFiles);
+        showToast('Game refreshed', 'info');
+      } else if (lastGeneratedCode) {
         renderInIframe(lastGeneratedCode);
         showToast('Game refreshed', 'info');
       }
+    });
+
+    // ── Clear Live View ──
+    const btnClearLiveView = document.getElementById('btn-clear-liveview');
+    if (btnClearLiveView) {
+      btnClearLiveView.addEventListener('click', liveViewClear);
+    }
+
+    // ── Theme toggle ──
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    if (btnThemeToggle) {
+      btnThemeToggle.addEventListener('click', toggleTheme);
+    }
+
+    // ── Output mode radios (no data-path — handled separately) ──
+    document.querySelectorAll('input[name="outputMode"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        syncStateFromUI();
+        syncUIFromState();
+        updatePromptPreview();
+        saveState();
+      });
     });
 
     // ── Dismiss error panel ──
@@ -1887,6 +2632,7 @@ MANDATORY GAME STRUCTURE — Every game MUST include ALL of the following screen
     // Load persisted state
     loadState();
     loadApiSettings();
+    loadTheme();
 
     // Sync UI from loaded state
     syncUIFromState();

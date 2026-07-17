@@ -129,7 +129,7 @@
             "name": "What subjects and game types are supported?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Game Creator Learn supports 12 subjects (Maths, English, Physics, Biology, Chemistry, History, Geography, Computer Science, Art, Music, Foreign Languages, Other) and reliable educational game types such as Quiz/Trivia, Practice Challenge, Puzzle, Matching Game, Memory Game, Sorting Game, Typing Game, Word Search, Escape Room, Adventure Quiz, Board Game, Platformer Quiz, Racing Quiz, and Card Game. It also offers focused learning mechanics, 10 art styles, and 6 age ranges from 5-8 years to Masters/Postgraduate."
+              "text": "Game Creator Learn supports 13 subjects (Math, Science, English, History, Geography, Art, Music, Computing, Languages, Biology, Chemistry, Physics, General) and 17 game types including Quiz, Typing, Memory, Word Search, Board, Clicker, Platformer, Puzzle, Shooter, RPG, Racing, Strategy, Roguelike, Simulation, Visual Novel, Arcade Collector, and Idle. It also offers 21 learning mechanics, 10 art styles, and 6 age ranges from KS1 (5-7) to University/Adult."
             }
           },
           {
@@ -175,7 +175,7 @@
             "@type": "HowToStep",
             "position": 2,
             "name": "Choose Your Subject and Topic",
-            "text": "In the Educational Topic module, select a subject from 12 options, enter a specific topic (e.g., 'Fractions'), and write a learning objective (e.g., 'Understand how to add fractions with different denominators')."
+            "text": "In the Educational Topic module, select a subject from 13 options, enter a specific topic (e.g., 'Fractions'), and write a learning objective (e.g., 'Understand how to add fractions with different denominators')."
           },
           {
             "@type": "HowToStep",
@@ -199,7 +199,7 @@
             "@type": "HowToStep",
             "position": 6,
             "name": "Download Your Game",
-            "text": "Click the Download button to save the generated game as a standalone HTML file. The file contains all CSS and JavaScript — just open it in any browser to play."
+            "text": "Click the Download button to save the generated game as a standalone HTML file (single-file mode) or as a ZIP of separate files (multi-file mode). The file contains all CSS and JavaScript — just open it in any browser to play."
           }
         ]
       },
@@ -229,7 +229,6 @@
     ]
   }
   </script>
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -255,6 +254,7 @@
         <span class="donate-text">Tip Jar</span>
       </a>
       <span class="donate-subtitle">If you've enjoyed creating with us, please give a donation to help keep the site up.</span>
+      <button id="btn-theme-toggle" class="icon-btn" title="Toggle dark/light theme">🌙</button>
       <button id="btn-history" class="icon-btn" title="History (Ctrl+H)">📜</button>
       <button id="btn-templates" class="icon-btn" title="Templates (Ctrl+T)">📋</button>
       <button id="btn-settings" class="btn btn-api" title="Connect Your AI (Ctrl+,)">🔗 Connect Your AI</button>
@@ -285,18 +285,19 @@
             <label for="subject" class="field-label">Subject</label>
             <select id="subject" class="field-select" data-path="educationalTopic.subject">
               <option value="">— Select Subject —</option>
-              <option value="Maths">Maths</option>
+              <option value="Math">Math</option>
+              <option value="Science">Science</option>
               <option value="English">English</option>
-              <option value="Physics">Physics</option>
-              <option value="Biology">Biology</option>
-              <option value="Chemistry">Chemistry</option>
               <option value="History">History</option>
               <option value="Geography">Geography</option>
-              <option value="Computer Science">Computer Science</option>
               <option value="Art">Art</option>
               <option value="Music">Music</option>
-              <option value="Foreign Languages">Foreign Languages</option>
-              <option value="Other">Other</option>
+              <option value="Computing">Computing</option>
+              <option value="Languages">Languages</option>
+              <option value="Biology">Biology</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Physics">Physics</option>
+              <option value="General">General</option>
             </select>
           </div>
 
@@ -333,24 +334,19 @@
             <label for="ageRange" class="field-label">Age Range</label>
             <select id="ageRange" class="field-select" data-path="difficulty.ageRange">
               <option value="">— Select Age Range —</option>
-              <option value="5-8 years (KS1/Early)">5–8 years (KS1 / Early Years)</option>
-              <option value="9-11 years (KS2/Primary)">9–11 years (KS2 / Primary)</option>
-              <option value="12-15 years (KS3/Lower Secondary)">12–15 years (KS3 / Lower Secondary)</option>
-              <option value="16-18 years (KS4-5/GCSE-A Level)">16–18 years (KS4-5 / GCSE–A Level)</option>
-              <option value="University">University</option>
-              <option value="Masters/Postgraduate">Masters / Postgraduate</option>
+              <option value="KS1 (5-7)">KS1 (5-7)</option>
+              <option value="KS2 (7-11)">KS2 (7-11)</option>
+              <option value="KS3 (11-14)">KS3 (11-14)</option>
+              <option value="GCSE (14-16)">GCSE (14-16)</option>
+              <option value="A-Level (16-18)">A-Level (16-18)</option>
+              <option value="University/Adult">University/Adult</option>
             </select>
           </div>
 
           <div class="field-group">
             <label for="difficultyLevel" class="field-label">Difficulty Level</label>
-            <select id="difficultyLevel" class="field-select" data-path="difficulty.difficultyLevel">
-              <option value="">— Select Difficulty —</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-              <option value="Expert">Expert</option>
-            </select>
+            <input type="text" id="difficultyLevel" class="field-input" data-path="difficulty.difficultyLevel"
+                   placeholder='e.g. "Beginner", "Intermediate", "Year 7 level"'>
           </div>
 
           <div class="field-group">
@@ -380,20 +376,23 @@
             <label for="genre" class="field-label">Game Type</label>
             <select id="genre" class="field-select" data-path="coreIdentity.genre">
               <option value="">— Select Game Type —</option>
-              <option value="Quiz">Quiz / Trivia</option>
-              <option value="Practice Challenge">Practice Challenge</option>
-              <option value="Puzzle">Puzzle</option>
-              <option value="Matching Game">Matching Game</option>
-              <option value="Memory Game">Memory Game</option>
-              <option value="Sorting Game">Sorting Game</option>
-              <option value="Typing Game">Typing Game</option>
+              <option value="Quiz">Quiz</option>
+              <option value="Typing">Typing</option>
+              <option value="Memory">Memory</option>
               <option value="Word Search">Word Search</option>
-              <option value="Escape Room">Escape Room</option>
-              <option value="Adventure Quiz">Adventure Quiz</option>
-              <option value="Board Game">Board Game</option>
-              <option value="Platformer Quiz">Platformer Quiz</option>
-              <option value="Racing Quiz">Racing Quiz</option>
-              <option value="Card Game">Card Game</option>
+              <option value="Board">Board</option>
+              <option value="Clicker">Clicker</option>
+              <option value="Platformer">Platformer</option>
+              <option value="Puzzle">Puzzle</option>
+              <option value="Shooter">Shooter</option>
+              <option value="RPG">RPG</option>
+              <option value="Racing">Racing</option>
+              <option value="Strategy">Strategy</option>
+              <option value="Roguelike">Roguelike</option>
+              <option value="Simulation">Simulation</option>
+              <option value="Visual Novel">Visual Novel</option>
+              <option value="Arcade Collector">Arcade Collector</option>
+              <option value="Idle">Idle</option>
             </select>
           </div>
 
@@ -435,21 +434,27 @@
           <div class="field-group">
             <label class="field-label">Mechanics <span class="field-hint">(click to toggle)</span></label>
             <div id="mechanics-tags" class="tag-grid">
-              <button class="tag-btn" data-value="Multiple Choice">Multiple Choice</button>
-              <button class="tag-btn" data-value="Type Answer">Type Answer</button>
-              <button class="tag-btn" data-value="Fill-in-the-Blank">Fill-in-the-Blank</button>
-              <button class="tag-btn" data-value="Matching">Matching</button>
-              <button class="tag-btn" data-value="Sorting & Categorisation">Sorting & Categorisation</button>
-              <button class="tag-btn" data-value="Sequencing">Sequencing</button>
+              <button class="tag-btn" data-value="Quiz System">Quiz System</button>
               <button class="tag-btn" data-value="Drag & Drop">Drag & Drop</button>
-              <button class="tag-btn" data-value="Timed Challenge">Timed Challenge</button>
+              <button class="tag-btn" data-value="Matching">Matching</button>
+              <button class="tag-btn" data-value="Timer">Timer</button>
+              <button class="tag-btn" data-value="Scoring">Scoring</button>
+              <button class="tag-btn" data-value="Progress Tracking">Progress Tracking</button>
               <button class="tag-btn" data-value="Hint System">Hint System</button>
-              <button class="tag-btn" data-value="Level Progression">Level Progression</button>
-              <button class="tag-btn" data-value="Lives / Attempts">Lives / Attempts</button>
-              <button class="tag-btn" data-value="Collectibles">Collectibles</button>
-              <button class="tag-btn" data-value="Dialogue Prompts">Dialogue Prompts</button>
-              <button class="tag-btn" data-value="Spaced Review">Spaced Review</button>
-              <button class="tag-btn" data-value="Achievements">Achievements</button>
+              <button class="tag-btn" data-value="Multiple Choice">Multiple Choice</button>
+              <button class="tag-btn" data-value="Fill in the Blank">Fill in the Blank</button>
+              <button class="tag-btn" data-value="Sequencing">Sequencing</button>
+              <button class="tag-btn" data-value="Sorting">Sorting</button>
+              <button class="tag-btn" data-value="Word Building">Word Building</button>
+              <button class="tag-btn" data-value="Pattern Recognition">Pattern Recognition</button>
+              <button class="tag-btn" data-value="Memory Cards">Memory Cards</button>
+              <button class="tag-btn" data-value="Flashcards">Flashcards</button>
+              <button class="tag-btn" data-value="Spelling">Spelling</button>
+              <button class="tag-btn" data-value="Math Operations">Math Operations</button>
+              <button class="tag-btn" data-value="Map/Geography">Map/Geography</button>
+              <button class="tag-btn" data-value="Simulation">Simulation</button>
+              <button class="tag-btn" data-value="Story/Dialogue">Story/Dialogue</button>
+              <button class="tag-btn" data-value="Achievement Badges">Achievement Badges</button>
             </div>
           </div>
 
@@ -493,14 +498,14 @@
               <option value="">— Select Style —</option>
               <option value="Pixel Art">Pixel Art</option>
               <option value="Minimalist Vector">Minimalist Vector</option>
-              <option value="ASCII">ASCII Art</option>
-              <option value="Simple 2D Shapes">Simple 2D Shapes</option>
-              <option value="Hand-drawn">Hand-drawn</option>
               <option value="Flat Design">Flat Design</option>
-              <option value="Retro CRT">Retro CRT</option>
+              <option value="Hand-drawn">Hand-drawn</option>
               <option value="Neon Glow">Neon Glow</option>
-              <option value="Cartoon">Cartoon</option>
-              <option value="Whiteboard">Whiteboard / Chalkboard</option>
+              <option value="Retro CRT">Retro CRT</option>
+              <option value="Whiteboard">Whiteboard</option>
+              <option value="Low-Poly 2D">Low-Poly 2D</option>
+              <option value="ASCII">ASCII</option>
+              <option value="Comic Book">Comic Book</option>
             </select>
           </div>
 
@@ -567,15 +572,50 @@
         </div>
       </details>
 
+      <!-- Module F: Output Mode -->
+      <details class="module-card output-mode-card" data-module="outputMode" open>
+        <summary class="module-header">
+          <span class="module-icon">📦</span>
+          <span class="module-title">Output Mode</span>
+        </summary>
+        <div class="module-body">
+          <p class="module-desc">Choose how the AI delivers your game files.</p>
+          <div class="output-mode-toggle">
+            <label class="output-mode-option">
+              <input type="radio" name="outputMode" value="single" checked>
+              <span class="output-mode-label">
+                <span class="output-mode-icon">📄</span>
+                <span class="output-mode-text">
+                  <strong>Single File</strong>
+                  <em>One self-contained .html file</em>
+                </span>
+              </span>
+            </label>
+            <label class="output-mode-option">
+              <input type="radio" name="outputMode" value="multi">
+              <span class="output-mode-label">
+                <span class="output-mode-icon">📁</span>
+                <span class="output-mode-text">
+                  <strong>Multi-File</strong>
+                  <em>index.html + style.css + game.js as separate files, downloaded as ZIP</em>
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </details>
+
     </aside>
 
-    <!-- ──────── MAIN: Preview & Sandbox ──────── -->
-    <section id="main-area" aria-label="Game preview and sandbox">
+    <!-- ──────── MAIN: Preview, Sandbox, Files, Live View ──────── -->
+    <main id="main-area" aria-label="Game preview and sandbox">
 
       <!-- Tab Bar -->
       <div id="main-tabs">
         <button class="tab-btn active" data-tab="preview">📝 Prompt Preview</button>
         <button class="tab-btn" data-tab="sandbox">🎮 Game Sandbox</button>
+        <button class="tab-btn tab-hidden" data-tab="files" id="tab-files">📂 Files</button>
+        <button class="tab-btn" data-tab="liveview">👁️ Live View</button>
       </div>
 
       <!-- Prompt Preview Panel -->
@@ -628,7 +668,55 @@
         </div>
       </section>
 
-    </section>
+      <!-- Files Panel (multi-file mode only) -->
+      <section id="panel-files" class="tab-panel">
+        <div class="panel-toolbar">
+          <span class="panel-title">📁 Generated Files</span>
+          <div class="toolbar-actions">
+            <button id="btn-download-zip" class="btn btn-sm" title="Download all files as ZIP">💾 Download ZIP</button>
+          </div>
+        </div>
+        <div id="file-browser" class="file-browser">
+          <div id="file-list" class="file-list">
+            <p class="placeholder">No files yet. Generate a game in Multi-File mode.</p>
+          </div>
+          <div id="file-viewer" class="file-viewer">
+            <div id="file-viewer-content" class="file-viewer-content">
+              <p class="placeholder">Select a file to view its content.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live View Panel -->
+      <section id="panel-liveview" class="tab-panel">
+        <div class="panel-toolbar">
+          <span class="panel-title">👁️ Live View — AI Generation</span>
+          <div class="toolbar-actions">
+            <span id="liveview-status" class="liveview-status status-idle">⚪ Idle</span>
+            <button id="btn-clear-liveview" class="btn btn-sm" title="Clear live view">🧹 Clear</button>
+          </div>
+        </div>
+        <div class="liveview-container">
+          <div id="liveview-thinking-section" class="liveview-section">
+            <div class="liveview-section-header">💭 AI Thinking</div>
+            <div id="liveview-thinking" class="liveview-content" content="thinking"></div>
+          </div>
+          <div id="liveview-code-section" class="liveview-section">
+            <div class="liveview-section-header">
+              💻 Code Being Built
+              <span id="liveview-stats" class="liveview-stats">0 lines · 0 chars</span>
+            </div>
+            <div id="liveview-code" class="liveview-content" content="code"></div>
+          </div>
+          <div id="liveview-placeholder" class="placeholder">
+            <span class="placeholder-icon">👁️</span>
+            <p>Start a generation to see the AI's response stream in real-time.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
 
   <!-- ═══════════════ MODALS ═══════════════ -->
