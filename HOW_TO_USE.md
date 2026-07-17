@@ -108,7 +108,6 @@ After generating, use the **Refine bar** at the bottom of the sandbox:
 | `Ctrl + Enter` | Generate Educational Game |
 | `Ctrl + B` | Toggle Sidebar |
 | `Ctrl + H` | Open History |
-| `Ctrl + T` | Open Templates |
 | `Ctrl + ,` | Open API Settings |
 | `Escape` | Close modals / Exit fullscreen |
 

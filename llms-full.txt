@@ -140,7 +140,6 @@ All providers are configured client-side. Users bring their own API keys (BYOK).
 | Ctrl + Enter | Generate Educational Game |
 | Ctrl + B | Toggle Sidebar |
 | Ctrl + H | Open History |
-| Ctrl + T | Open Templates |
 | Ctrl + , | Open API Settings |
 | Escape | Close modals / Exit fullscreen |
 
@@ -230,7 +229,6 @@ All generated games follow a mandatory structure:
 - Token limit: 50,000 tokens per generation
 - Streaming support: real-time streaming responses from LLM providers
 - History: last 50 generated games saved to localStorage
-- Templates: save and reuse game configurations (localStorage)
 - Connection testing: verify API keys and detect available models before use
 
 ---
@@ -238,7 +236,7 @@ All generated games follow a mandatory structure:
 ## Tech Stack
 
 - Frontend: Vanilla HTML, CSS, JavaScript — no frameworks, no build tools
-- Storage: localStorage (state, API settings, history, templates)
+- Storage: localStorage (state, API settings, history)
 - Rendering: Vanilla DOM manipulation + Canvas (via generated games)
 - LLM APIs: 6 provider adapters (OpenAI-compatible + Anthropic native format)
 - Generation: Prompt assembly → LLM call → Code extraction → iframe rendering

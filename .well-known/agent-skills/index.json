@@ -30,11 +30,6 @@
       "name": "game-refinement",
       "description": "Iteratively refine generated games via multi-turn conversation with an LLM — send change requests to modify existing game code",
       "url": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md"
-    },
-    {
-      "name": "template-management",
-      "description": "Save and reuse game configuration templates — persist favorite parameter combinations for quick regeneration",
-      "url": "https://aigamecreatorlearn.netlify.app/HOW_TO_USE.md"
     }
   ]
 }

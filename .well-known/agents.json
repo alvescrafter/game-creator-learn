@@ -36,10 +36,6 @@
     {
       "name": "game-refinement",
       "description": "Iteratively refine generated games via multi-turn LLM conversation"
-    },
-    {
-      "name": "template-management",
-      "description": "Save and reuse game configuration templates"
     }
   ],
   "resources": {

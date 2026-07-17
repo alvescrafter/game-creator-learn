@@ -21,11 +21,10 @@
 - Game sandbox: live iframe rendering of generated games
 - Refine feature: multi-turn conversation with LLM to iteratively improve generated games
 - History: last 50 generated games saved to localStorage
-- Templates: save and reuse game configurations
 - Download: export generated games as standalone HTML files
 - Streaming: real-time streaming responses from LLM providers
 - Connection testing: verify API keys and detect available models
-- Keyboard shortcuts: Ctrl+Enter (generate), Ctrl+B (sidebar), Ctrl+H (history), Ctrl+T (templates), Ctrl+, (settings)
+- Keyboard shortcuts: Ctrl+Enter (generate), Ctrl+B (sidebar), Ctrl+H (history), Ctrl+, (settings)
 
 ## Technical Details
 - Tech stack: Vanilla HTML, CSS, JavaScript — no frameworks, no build tools

@@ -140,7 +140,6 @@
       "Game sandbox (live iframe rendering)",
       "Refine (multi-turn LLM conversation)",
       "History (50 games in localStorage)",
-      "Templates (save/reuse configurations)",
       "Download (standalone HTML files)",
       "Streaming responses",
       "Connection testing",

@@ -11,7 +11,7 @@ Game Creator Learn is a **client-side educational game generator** deployed as a
 ## Tech Stack
 
 - **Frontend**: Vanilla HTML, CSS, JavaScript — no frameworks, no build tools
-- **Storage**: localStorage (API settings, history, templates, state)
+- **Storage**: localStorage (API settings, history, state)
 - **LLM APIs**: 6 provider adapters (OpenAI-compatible + Anthropic native format)
 - **Testing**: Jest (prompt builder tests only)
 - **Deployment**: Static site on Netlify (no server runtime)
@@ -111,7 +111,6 @@ All 6 LLM providers are defined in `PROVIDER_PRESETS` object at the top of `app.
 ### State Management
 - `apiSettings` object — current provider, API key, model, temperature
 - `history` array — last 50 generated games (localStorage)
-- `templates` object — saved game configurations (localStorage)
 - All state persists in localStorage with keys prefixed `gcl_`
 
 ## Deployment

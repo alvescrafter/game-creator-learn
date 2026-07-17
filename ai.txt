@@ -40,4 +40,4 @@ GitHub issues: https://github.com/alvescrafter/game-creator-learn/issues
 ## Exclusions
 - /api/ — no API endpoints exist (placeholder for future)
 - No user data is collected or stored server-side
-- All user data (API keys, history, templates) is stored locally in the browser (localStorage)
+- All user data (API keys, history) is stored locally in the browser (localStorage)
